@@ -1,7 +1,7 @@
 #---------------------------------------------------------------------------#
 # Math::NumberCruncher
 #       Date Written:   30-Aug-2000 02:41:52 PM
-#       Last Modified:  17-Dec-2001 03:44:11 PM
+#       Last Modified:  02-Jan-2002 12:09:44 PM
 #       Author:    Kurt Kincaid
 #       Copyright (c) 2001, Kurt Kincaid
 #           All Rights Reserved
@@ -22,7 +22,7 @@ use vars qw( $PI $_e_ $_g_ $VERSION @ISA @EXPORT_OK @array );
 
 @ISA       = qw( Exporter );
 @EXPORT_OK = qw( $PI $_e_ $_g_ $VERSION );
-$VERSION   = '4.03';
+$VERSION   = '4.04';
 
 $PI  = new Math::BigFloat "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458700660631558817488152092096282925409171536436789259036001133053054882046652138414695194151160943305727036575959195309218611738193261179310511854807446237996274956735188575272489122793818301194758";
 $_e_ = new Math::BigFloat "2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642742746639193200305992181741359662904357290033429526059563073813232862794349076323382988075319525101901157383418793070215408914993488416750924476146066808226480016847741185374234544243710753907774499206955170276183860626133138458300075204493382656029760673711320070932870912744374704723069697720931014169283681902551510865746377211125238978442505695369677078544996996794686445490598793163688923009879312";
@@ -245,6 +245,7 @@ sub Factorial {
     unless ( $n >= 0 && $n == int($n) ) {
         return undef;
     }
+
     while ( $n > 1 ) {
         $result *= $n--;
     }
@@ -925,7 +926,7 @@ sub ActualSpeed {
     my $legLength = Math::BigFloat->new( shift );
     my $dimensionlessSpeed = Math::BigFloat->new( shift );
     my $AS = Math::BigFloat->new();
-    $AS = $dimensionlessSpeed * SqrRoot( abs( $legLength * 9.80665 ) );
+    $AS = $dimensionlessSpeed * SqrRoot( Math::BigFloat->bstr( abs( $legLength * 9.80665 ) ) );
     return $AS;
 }
 
@@ -965,7 +966,7 @@ sub OrbitalVelocity {
     my $r = Math::BigFloat->new( shift );
     my $a = Math::BigFloat->new( shift );
     my $M = Math::BigFloat->new( shift );
-    my $iterations = 49 || shift;
+    my $iterations = 4 || shift;
     my $num = 2 * $_g_ * $M * ( (1/$r) - (1/(2*$a)) );
     my $x = Math::BigFloat->bstr( $num );
     my $v = SqrRoot( $x, $iterations );
@@ -976,21 +977,7 @@ sub SqrRoot {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $num        = Math::BigFloat->new( shift );
-    my $guess      = Math::BigFloat->new(1);
-    my $previous   = Math::BigFloat->new(1);
-    my $iterations = shift || 50;
-    $guess = ($num+1)/2;
-    return undef if $iterations < 1;
-    for ( 1..$iterations ) {
-        $guess = (( $num / $guess ) + $guess ) / 2;
-        if ( $guess == $previous ) {
-            last;
-        } else {
-            $previous = $guess;
-        }
-    }
-    return $guess;
+    return Root( shift, 2, shift || 5 );
 }
 
 sub asin {
@@ -1114,17 +1101,170 @@ sub Root {
     }
     my $num        = shift;
     my $root       = shift;
-    my $iterations = shift || 10;
-    if ( $root == 0 ) { return 1 }
+    my $iterations = shift || 5;
     if ( $num < 0 ) { return undef }
+    if ( $root == 0 ) { return 1 }
+    my $Num = Math::BigFloat->new( $num );
+    my $Root = Math::BigFloat->new( $root );
     my $current = Math::BigFloat->new();
-    my $guess   = Math::BigFloat->new( ( $num / 2 ) - 1 );
+    my $guess   = Math::BigFloat->new( $num ** ( 1 / $root ) );
+    my $t       = Math::BigFloat->new( $guess ** ( $root - 1 ) ); 
     for ( 1 .. $iterations ) {
-        $current = $guess - ( $guess ** $root - $num ) / ( $root * $guess ** ( $root - 1 ) );
-        if ( $guess eq $current ) { last }
-        $guess = $current;
+        $current = $guess - ( $guess * $t - $Num ) / ( $Root * $t  );
+        last unless $guess->bcmp( $current );
+        $t     = $current ** ( $root - 1 );
+        $guess = $current->copy();
     }
     return $current;
+}
+
+sub Root2 {
+    if ( ref $_[0] ) {
+        my $self = shift;
+    }
+    my ( $n, $r, $p ) = @_;
+    $p++;
+    my $log = Ln( $n, $p ) / $r;
+    Exp( $log, $p )->bfround( 1 - $p );
+}
+
+sub ECONST {
+    my $max_p = 0;
+    my $max_econst;
+    if ( ref $_[0] ) {
+        my $self = shift;
+    }
+    my ( $P ) = @_;
+    $P = 20 unless defined $P;
+    if ( $P <= $max_p ) {
+        return $max_econst->copy->bfround( -$P );
+    }
+    my $Eps = 0.5 * Math::BigFloat->new( "1" . "0" x $P );
+    my $N   = Math::BigFloat->new( "1" )->bfround( -$P );
+    my $D   = Math::BigFloat->new( "1" )->bfround( -$P );
+    my $J   = Math::BigFloat->new( "1" )->bfround( -$P );
+    {
+        $N = $J * $N + 1;
+        $D = $J * $D;
+        if ( $D >= $Eps ) {
+            $max_p = $P;
+            return $max_econst = $N / $D;
+        }
+        $J++;
+        redo;
+    }
+}
+
+sub Exp {
+    if ( $_[0] =~ /NumberCruncher/ ) {
+        my $self = shift;
+    }
+    my ( $X, $P ) = @_;
+    $X = ref( $X ) ? $X->copy : Math::BigFloat->new( $X );
+    $P = 20 unless defined $P;
+    $X->bfround( -$P );
+    my $Y = $X->copy->bfround( 0 );
+    $Y->bfround( -$P );
+    $Y += ( 0 cmp $X ) if abs( $X - $Y ) > 0.5;
+    $X = $X - $Y;
+    my $Sum  = Math::BigFloat->new( "1" )->bfround( -$P );
+    my $Term = Math::BigFloat->new( "1" )->bfround( -$P );
+    my $J    = Math::BigFloat->new( "1" )->bfround( -$P );
+    {
+        $Term *= $X / $J;
+        my $NewSum = $Sum + $Term;
+        last unless $NewSum cmp $Sum;
+        $Sum = $NewSum;
+        $J++;
+        redo;
+    }
+    return $Sum unless $Y cmp 0;
+    my $E   = ECONST( $P );
+    my $E_Y = 1;
+    $E_Y *= $E for 1 .. $Y;
+    $E_Y *= $Sum;
+    return $E_Y;
+}
+
+sub Ln {
+    if ( $_[0] =~ /NumberCruncher/ ) {
+        my $self = shift;
+    }
+    my ( $X, $P ) = @_;
+    $X = ref( $X ) ? $X->copy : Math::BigFloat->new( $X );
+    $P = 20 unless defined $P;
+    $X->bfround( -$P );
+    return -Ln( 1 / $X, $P ) if $X < 1;
+    my $M = 0;
+    ++$M until ( 2**$M ) > $X;
+    $M--;
+    my $Z        = $X / ( 2**$M );
+    my $Zeta     = ( 1 - $Z ) / ( 1 + $Z );
+    my $N        = $Zeta;
+    my $Ln       = $Zeta;
+    my $Zetasup2 = $Zeta * $Zeta;
+    my $J        = 1;
+    {
+        $N = $N * $Zetasup2;
+        my $NewLn = $Ln + $N / ( 2 * $J + 1 );
+        return $M * LN2P( $P ) - 2 * $Ln unless $NewLn cmp $Ln;
+        $Ln = $NewLn;
+        $J++;
+        redo;
+    }
+}
+
+sub LN2P {
+    my $max_p = 0;
+    my $max_ln2p;
+    if ( ref $_[0] ) {
+        my $self = shift;
+    }
+    my ( $P ) = @_;
+    if ( $P <= $max_p ) {
+        return $max_ln2p->copy->bfround( -$P );
+    }
+    my $one      = Math::BigFloat->new( "1" )->bfround( -$P );
+    my $two      = Math::BigFloat->new( "2" )->bfround( -$P );
+    my $N        = $one / 3;
+    my $Ln       = $N;
+    my $Zetasup2 = $one / 9;
+    my $J        = 1;
+    {
+        $N = $N * $Zetasup2;
+        my $NewLn = $Ln + $N / ( 2 * $J + 1 );
+        unless ( $NewLn cmp $Ln ) {
+            $max_p = $P;
+            return $max_ln2p = $Ln * 2;
+        }
+        $Ln = $NewLn;
+        $J++;
+        redo;
+    }
+}
+
+sub PythagTriples {
+    if ( ref $_[0] ) {
+        my $self = shift;
+    }
+    my ( $s, $t ) = @_;
+    if ( $s <= 0 || $t <= 0 ) { return undef }
+    my $x = Math::BigFloat->new( abs( $t ** 2 - $s ** 2 ) );
+    my $y = Math::BigFloat->new( 2 * $s * $t );
+    my $z = Math::BigFloat->new( $t ** 2 + $s ** 2 );
+    return $x, $y, $z;
+}
+
+sub PythagTriplesSeq {
+    if ( ref $_[0] ) {
+        my $self = shift;
+    }
+    my ( $s, $t ) = @_;
+    if ( $s <= 0 || $t <= 0 ) { return undef }
+    my $x = Math::BigFloat->new( $s ** 2 );
+    my $y = Math::BigFloat->new( $t ** 2 );
+    my $sum = $x->copy()->badd( $y );
+    return SqrRoot( Math::BigFloat->bstr( $sum ) );
 }
 
 1;
@@ -1327,6 +1467,16 @@ $haversine = Math::NumberCruncher::hav( $x );
 $grouped = Math::NumberCruncher::Commas( $number );
 
 $root = Math::NumberCruncher::Root( 55, 3 [, $iterations] );
+
+$root = Math::NumberCruncher::Root2( 55, 3 [, $decimal_places] );
+
+$log = Math::NumberCruncher::Ln( 100 [, $decimal_places] );
+
+$num = Math::NumberCruncher::Exp( 0.111 [, $decimal_places] );
+
+( $A, $B, $C ) = Math::NumberCruncher::PythagTriples( $x, $y );
+
+$z = Math::NumberCruncher::PythagTriplesSeq( $x, $y );
 
 =head1 DESCRIPTION
 
@@ -1608,11 +1758,11 @@ Calculates the area of an ellipse, given the semi-major axis and the semi-minor 
 
 =head2 $OrbitalVelocity = B<Math::NumberCruncher::OrbitalVelocity>( $r, $a, $M [, $iterations] );
 
-Calculates orbital velocity of an object given the radial distance at a given point on an elliptical orbit, the mean distance of the central object, and the mass of the central object. As with SqrRoot(), $iterations is optional and defaults to 50.
+Calculates orbital velocity of an object given the radial distance at a given point on an elliptical orbit, the mean distance of the central object, and the mass of the central object. As with SqrRoot(), $iterations is optional and defaults to 5.
 
 =head2 $SqrRoot = B<Math::NumberCruncher::SqrRoot>( $number [, $iterations] );
 
-Calculates the square root of a number out to an arbitrary number of decimal places. This uses the averaging method and defaults to 50 iterations unless otherwise specified. In most cases, 50 iterations is easily sufficient. Regardless of the number of iterations, the loop ends if the current guess at the root is equal to the previous guess. It should be noted that this method is substantially slower than the built-in sqrt() function. However, especially with large numbers, this method is far more accurate.
+Calculates the square root of a number out to an arbitrary number of decimal places. This uses the averaging method and defaults to 5 iterations unless otherwise specified. In most cases, 5 iterations is easily sufficient. Regardless of the number of iterations, the loop ends if the current guess at the root is equal to the previous guess. It should be noted that this method is substantially slower than the built-in sqrt() function. However, especially with large numbers, this method is far more accurate.
 
 =head2 $arcsin = B<Math::NumberCruncher::asin>( $x );
 
@@ -1672,7 +1822,27 @@ Performs digit grouping, making large number more visually pleasing.
 
 =head2 $root = B<Math::NumberCruncher::Root>( 55, 3 [, $iterations] );
 
-Calculates the N-th root of a given number. In the above example, $root is the cube root of 55. $iterations defaults to 10. While you can set $iterations as high as you like, it should be noted that each iteration gets progressivly slower. Root() can actually be used to calculate square roots with a greater degree of accuracy than SqrRoot(), but it requires a great deal of trial-and-error with the number of iterations. Too few iterations and the result is *very* inaccurate; too many iterations and is could easily take several minutes to get the result.
+Calculates the N-th root of a given number using Newton's Method. In the above example, $root is the cube root of 55. $iterations defaults to 5. While you can set $iterations as high as you like, it should be noted that each iteration gets progressivly slower.
+
+=head2 $root = B<Math::NumberCruncher::Root2>( 55, 3 [, $decimal_places] );
+
+Calculates the N=th root of a given number using logarithms. In the above example, $root is the cube root of 55. You can specify the number of decimal places wanted, otherwise it defaults to 20.
+
+=head2 $log = B<Math::NumberCruncher::Ln>( 100 [, $decimal_places] );
+
+Calculates the natural log of a given number to a given number of decimal places. Unless specified, the number of decimal places defaults to 20.
+
+=head2 $num = B<Math::NumberCruncher::Exp>( $log [, $decimal_places] );
+
+Performs the inverse of Ln(). Unless specified, the number of decimal places defaults to 20.
+
+=head2 ( $A, $B, $C ) = B<Math::NumberCruncher::PythagTriples>( 5, 7 );
+
+Calculates Pythagorian Triples based on the two numbers passed. Remember Pythagorian Triples are three numbers where the sum of the squares of the first two numbers is equal to the square of the third.
+
+=head2 $z = B<Math::NumberCruncher::PythagTriplesSeq>( 55, 32 );
+
+Completes the Pythagorian Triple sequence based on the two numbers passed.
 
 =head1 AUTHOR
 
@@ -1681,6 +1851,12 @@ Kurt Kincaid, sifukurt@yahoo.com
 =head1 COPYRIGHT
 
 Copyright (c) 2001, Kurt Kincaid.  All rights reserved. This code is free software; you can redistribute it and/or modify it under the same terms as Perl itself.  Several of the algorithms contained herein are adapted from _Mastering Algorithms with Perl_, by Jon Orwant, Jarkko Hietaniemi, and John Macdonald. Copyright (c) 1999 O-Reilly & Associates, Inc. 
+
+=head1 SPECIAL THANKS
+
+Thanks to Douglas Wilson for allowing me to borrow his code for Ln(), Exp(), Root2(), and the various other supporting functions. Mr. Wilson's code is based on an algorithm described at L<http://www.geocities.com/zabrodskyvlada/aat/>
+
+I would also like to thank the folks at L<http://www.perlmonks.org> for their input on optimizing B<Root()>.
 
 =head1 SEE ALSO
 

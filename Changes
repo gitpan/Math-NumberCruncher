@@ -1,5 +1,24 @@
 Revision history for Perl extension Math::NumberCruncher.
 
+4.04 Wed Jan 02 12:09:44 2002
+    - Added Ln(), which calculates the natural log of a number
+      to a given number of decimal places.
+    - Added Exp(), which performs the inverse of Ln().
+    - Added Root2(), which calculates the N-th root of a given number 
+      using logarithms, rather than Newton's Method, which is what is
+      used in Root(). Root2() allows you to specify the number of decimal
+      places wanted. For particularly large number and/or roots, Root2()
+      is sometimes faster and/or more accurate.
+    - Made significant optimization to Root(). It is now more accurate and
+      substantially faster than v4.03. Thanks to the folks at perlmonks.org
+      for their input on the optimization.
+    - Modified SqrRoot() to use Root(), rather than separate code.
+    - Added PythagTriples() and PythagTriplesSeq().
+    - Special thanks to Douglas Wilson for allowing me to borrow his code
+      for Ln(), Exp(), Root2(), and the various other "behind-the-scenes" 
+      functions for same. Douglas's code is based on an algorithm described 
+      at http://www.geocities.com/zabrodskyvlada/aat/.
+
 4.03 Wed Dec 19 15:44:11 2001
     - Fixed the Variance() test in test.pl to allow for 
       slight error tolerance.

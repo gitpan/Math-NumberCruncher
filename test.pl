@@ -10,7 +10,7 @@ END {
 }
 
 use Math::NumberCruncher;
-$tests = 85;
+$tests = 90;
 print ("Testing Math::NumberCruncher v$Math::NumberCruncher::VERSION\n\n");
 $loaded = 1;
 $count  = 1;
@@ -86,7 +86,7 @@ Testing();
 
 # Distance()
 $dist = $ref->Distance( 1, 2, 3, 8, 9, 10 );
-if ( $dist !~ /^12.1243556529821410546921243905411065686/ ) {
+if ( $dist !~ /^12.1243556529821410546921243905411065685/ ) {
     $Failed{10} = "Distance()";
 }
 Testing();
@@ -295,13 +295,14 @@ if ( $ref->Predict( 1, 3, 5 ) != 8 ) {
 Testing();
 
 # TriangleHeron
-if ( $ref->TriangleHeron( 5, 5, 5 ) !~ /^10.8253175473054830845465396344117022934/ ) {
+if ( $ref->TriangleHeron( 5, 5, 5 ) !~ /^10.8253175473054830845465396344117022933/ ) {
     $Failed{37} = "TriangleHeron()";
 }
 Testing();
 
 # PolygonPerimeter()
-if ( $ref->PolygonPerimeter( 1, 1, 5, 5, 7, 3, 8, 0 ) !~ /^18.718626846272424868817469510739397397986/ ) {
+if ( $ref->PolygonPerimeter( 1, 1, 5, 5, 7, 3, 8, 0 ) !~ /^18.718626846272424868817469510739397397985/ ) {
+    print $ref->PolygonPerimeter( 1, 1, 5, 5, 7, 3, 8, 0 ), "\n";
     $Failed{38} = "PolygonPerimeter()";
 }
 Testing();
@@ -471,7 +472,8 @@ if ( $ref->DimensionlessSpeed_2( 0.1, 4 ) !~ /^0.015966497839052/ ) {
 Testing();
 
 # ActualSpeed()
-if ( $ref->ActualSpeed( 4, 0.681818181818181 ) !~ /^0.000000000000000302788097/ ) {
+if ( $ref->ActualSpeed( 4, 0.681818181818181 ) !~ /^4.2703051645458622507/ ) {
+    print $ref->ActualSpeed( 4, 0.681818181818181 ), "\n";
     $Failed{65} = "ActualSpeed()";
 }
 Testing();
@@ -592,7 +594,38 @@ Testing();
 
 # Root()
 if ( $ref->Root( 55, 3 ) !~ /^3.8029524607613916185467/ ) {
-    $Failed{35} = "Root()";
+    $Failed{85} = "Root()";
+}
+Testing();
+
+# Root2()
+if ( $ref->Root2( 10000, 20, 25 ) !~ /^1.58489319246111/ ) {
+    $Failed{86} = "Root2()";
+}
+Testing();
+
+# Ln()
+if ( $ref->Ln( 100 ) ne "4.60517018598809136794" ) {
+    $Failed{87} = "Ln()";
+}
+Testing();
+
+# Exp()
+if ( $ref->Exp( 1.11111, 25 ) ne "3.0377284022618271502307375" ) {
+    $Failed{88} = "Exp()";
+}
+Testing();
+
+# PythagTriples()
+( $a, $b, $c ) = $ref->PythagTriples( 5, 7 );
+unless ( $a == 24 && $b == 70 && $c == 74 ) {
+    $Failed{89} = "PythagTriples()";
+}
+Testing();
+
+# PythagTriplesSeq()
+if ( $ref->PythagTriplesSeq( 25, 53 ) !~ /^58.6003412959344461188613527037/ ) {
+    $Failed{90} = "PythagTriplesSeq()";
 }
 Testing();
 

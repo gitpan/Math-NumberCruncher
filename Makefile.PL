@@ -4,5 +4,5 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'        => 'Math::NumberCruncher',
     'VERSION_FROM'    => 'NumberCruncher.pm', # finds $VERSION
-    'PREREQ_PM'        => {}, # e.g., Module::Name => 1.1
+    'PREREQ_PM'        => { "Math::BigInt"   => 1.47 }, # e.g., Module::Name => 1.1
 );
