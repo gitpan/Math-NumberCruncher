@@ -3,545 +3,648 @@ package Math::NumberCruncher;
 require Exporter;
 
 @ISA = qw(Exporter AutoLoader);
+@EXPORT_OK=qw($PI $_e_);
 
-$VERSION = '2.0';
+$VERSION = '2.2';
 
 use strict;
 use constant epsilon => 1E-10;
 use Math::BigFloat;
 
 my $PI = new Math::BigFloat "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196";
+my $_e_ = new Math::BigFloat "2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274274663919320030599218174135966290435729003342952605956307381323286279434907632338298807531952510190";
 
 sub Range {
-	my $arrayref = shift;
-	my ( $zzz, $hi, $lo );
-	$hi = $lo = $$arrayref[0];
-	foreach $zzz ( @$arrayref ) {
-		if ( $zzz > $hi ) {
-			$hi = $zzz;
-		}
-		if ( $zzz < $lo ) {
-			$lo = $zzz;
-		}
-	}
-	if ( $lo eq "" ) { $lo = "0" }
-	return ( $hi, $lo );
+    my $arrayref = shift;
+    return ( undef, undef ) unless defined $arrayref && $arrayref > 0;
+    my ( $zzz, $hi, $lo );
+    $hi = $lo = $$arrayref[0];
+    foreach $zzz (@$arrayref) {
+
+        if ( $zzz > $hi ) {
+            $hi = $zzz;
+        }
+        if ( $zzz < $lo ) {
+            $lo = $zzz;
+        }
+    }
+    if ( $lo eq "" ) { $lo = "0" }
+    return ( $hi, $lo );
 }
 
 sub Mean {
-	my $arrayref = shift;
-	my $result;
-	foreach (@$arrayref) { $result += $_ }
-	return $result / @$arrayref;
+    my $arrayref = shift;
+    return undef unless defined $arrayref && @$arrayref > 0;
+    my $result;
+    foreach (@$arrayref) { $result += $_ }
+    return $result / @$arrayref;
 }
 
-sub Median { # median may or may not be an element of the array
-	my $arrayref = shift;
-	my $median = undef;
-	my @array = sort { $a <=> $b } @$arrayref;
-	if ( @array % 2 ) {
-		$median = $array[@array/2];
-	} else {
-		$median = ($array[@array/2-1] + $array[@array/2]) /2;
-	}
-	return $median;
+sub Median {    # median may or may not be an element of the array
+    my $arrayref = shift;
+    my $median   = undef;
+    my @array    = sort { $a <=> $b } @$arrayref;
+    if ( @array % 2 ) {
+        $median = $array[ @array / 2 ];
+    } else {
+        $median = ( $array[ @array / 2 - 1 ] + $array[ @array / 2 ] ) / 2;
+    }
+    return $median;
 }
 
-sub OddMedian { # median *is* an element of the array
-	my $arrayref = shift;
-	my @array = sort { $a <=> $b } @$arrayref;
-	return $array[(@array - (0,0,1,0)[@array & 3]) / 2];
+sub OddMedian {    # median *is* an element of the array
+    my $arrayref = shift;
+    my @array = sort { $a <=> $b } @$arrayref;
+    return $array[ ( @array - ( 0, 0, 1, 0 )[ @array & 3 ] ) / 2 ];
 }
 
 sub Mode {
-	my $arrayref = shift;
-	my ( %count, @result );
-	foreach ( @$arrayref) { $count{$_}++ }
-	foreach ( sort { $count{$b} <=> $count{$a} } keys %count) {
-		last if @result && $count{$_} != $count{$result[0]};
-		push ( @result, $_ );
-	}
-	return OddMedian \@result;
+    my $arrayref = shift;
+    my ( %count, @result );
+    foreach (@$arrayref) { $count{$_}++ }
+    foreach ( sort { $count{$b} <=> $count{$a} } keys %count ) {
+        last if @result && $count{$_} != $count{ $result[0] };
+        push ( @result, $_ );
+    }
+    return OddMedian \@result;
 }
 
 sub Covariance {
-	my ( $array1ref, $array2ref ) = @_;
-	my ( $i, $result );
-	for ( $i = 0; $i < @$array1ref; $i++ ) {
-		$result += $array1ref->[$i] * $array2ref->[$i];
-	}
-	$result /= @$array1ref;
-	$result -= Mean( $array1ref) * Mean( $array2ref);
-	return $result;
+    my ( $array1ref, $array2ref ) = @_;
+    my ( $i, $result );
+    for ( $i = 0 ; $i < @$array1ref ; $i++ ) {
+        $result += $array1ref->[$i] * $array2ref->[$i];
+    }
+    $result /= @$array1ref;
+    $result -= Mean($array1ref) * Mean($array2ref);
+    return $result;
 }
 
 sub Correlation {
-	my ( $array1ref, $array2ref ) = @_;
-	my ( $sum1, $sum2, $sum1_sqrd, $sum2_sqrd);
-	foreach ( @$array1ref ) {
-		$sum1 += $_;
-		$sum1_sqrd += $_**2;
-	}
-	foreach ( @$array2ref ) {
-		$sum2 += $_;
-		$sum2_sqrd += $_**2;
-	}
-	return ( @$array1ref ** 2 ) * Covariance( $array1ref,$array2ref ) / 
-		sqrt((( @$array1ref * $sum1_sqrd ) - ( $sum1 ** 2 )) * 
-		(( @$array1ref * $sum2_sqrd ) - ( $sum2 ** 2 )));
+    my ( $array1ref, $array2ref ) = @_;
+    my ( $sum1, $sum2, $sum1_sqrd, $sum2_sqrd );
+    foreach (@$array1ref) {
+        $sum1      += $_;
+        $sum1_sqrd += $_**2;
+    }
+
+    foreach (@$array2ref) {
+        $sum2      += $_;
+        $sum2_sqrd += $_**2;
+    }
+    return ( @$array1ref**2 ) * Covariance( $array1ref, $array2ref ) /
+      sqrt( ( ( @$array1ref * $sum1_sqrd ) - ( $sum1**2 ) ) *
+      ( ( @$array1ref * $sum2_sqrd ) - ( $sum2**2 ) ) );
 }
 
 sub BestFit {
-	my( $a_ref, $b_ref ) = @_;
-	my ( $i, $product, $sum1, $sum2, $sum1_sqrs, $a, $b );
-	for ( $i = 0; $i <= @$a_ref; $i++ ) {
-		$product += $a_ref->[$i] * $b_ref->[$i];
-		$sum1 += $a_ref->[$i];
-		$sum1_sqrs += $a_ref->[$i]**2;
-		$sum2 += $b_ref->[$i];
-	}
-	$b = (( @$a_ref * $product ) - ( $sum1 * $sum2 )) /
-		(( @$a_ref * $sum1_sqrs ) - ( $sum1 ** 2 ));
-	$a = ( $sum2 - $b * $sum1 ) / @$a_ref;
-	return( $b, $a );
+    my ( $a_ref, $b_ref ) = @_;
+    my ( $i, $product, $sum1, $sum2, $sum1_sqrs, $a, $b );
+    for ( $i = 0 ; $i <= @$a_ref ; $i++ ) {
+        $product   += $a_ref->[$i] * $b_ref->[$i];
+        $sum1      += $a_ref->[$i];
+        $sum1_sqrs += $a_ref->[$i]**2;
+        $sum2      += $b_ref->[$i];
+    }
+    $b =
+      ( ( @$a_ref * $product ) - ( $sum1 * $sum2 ) ) /
+      ( ( @$a_ref * $sum1_sqrs ) - ( $sum1**2 ) );
+    $a = ( $sum2 - $b * $sum1 ) / @$a_ref;
+    return ( $b, $a );
 }
 
-sub Distance { # Distance( $x1, $y1, $x2, $y2 );
-	my @p = @_;
-	my $d = @p / 2;
-	return sqrt(( $_[0] - $_[2] ) ** 2 + ( $_[1] - $_[3] ) ** 2 ) if $d == 2;
-	my $S = 0;
-	my @p0 = splice @p, 0, $d;
-	for ( my $i = 0; $i < $d; $i++ ) {
-		my $di = $p0[$i] - $p[$i];
-		$S += $di * $di;
-	}
-	return sqrt( $S );
+sub Distance {    # Distance( $x1, $y1, $x2, $y2 );
+    my @p = @_;
+    my $d = @p / 2;
+    return sqrt( ( $_[0] - $_[2] )**2 + ( $_[1] - $_[3] )**2 ) if $d == 2;
+    my $S = 0;
+    my @p0 = splice @p, 0, $d;
+    for ( my $i = 0 ; $i < $d ; $i++ ) {
+        my $di = $p0[$i] - $p[$i];
+        $S += $di * $di;
+    }
+    return sqrt($S);
 }
 
 sub ManhattanDistance {
-	my @p = @_;
-	my $d = @p / 2;
-	my $S = 0;
-	my @p0 = splice @p, 0, $d;
-	for ( my $i = 0; $i < $d; $i++ ) {
-		my $di = $p0[$i] - $p[$i];
-		$S += abs $di;
-	}
-	return $S;
+    my @p  = @_;
+    my $d  = @p / 2;
+    my $S  = 0;
+    my @p0 = splice @p, 0, $d;
+    for ( my $i = 0 ; $i < $d ; $i++ ) {
+        my $di = $p0[$i] - $p[$i];
+        $S += abs $di;
+    }
+    return $S;
 }
 
-sub AllOf { 
-	my $result = 1;
-	while ( @_ ) {
-		$result *= shift;
-	}
-	return $result;
+sub AllOf {
+    my $result = 1;
+    while (@_) {
+        $result *= shift;
+    }
+    return $result;
 }
 
 sub NoneOf {
-	my $result = 1;
-	while ( @_ ) {
-		$result *= ( 1 - shift );
-	}
-	return $result;
+    my $result = 1;
+    while (@_) {
+        $result *= ( 1 - shift );
+    }
+    return $result;
 }
 
 sub SomeOf {
-	return 1 - &NoneOf;
+    return 1 - &NoneOf;
 }
 
 sub Factorial {
-	my $n = shift;
-	my $result = 1;
-	unless ( $n >= 0 && $n == int( $n ) ) {
-		return undef;
-	}
-	while ( $n > 1 ) {
-		$result *= $n--;
-	}
-	return $result;
+    my $n      = shift;
+    my $result = 1;
+    unless ( $n >= 0 && $n == int($n) ) {
+        return undef;
+    }
+
+    while ( $n > 1 ) {
+        $result *= $n--;
+    }
+    return $result;
 }
 
 sub Permutation {
-	my ( $n, $k ) = @_;
-	my $result = 1;
+    my ( $n, $k ) = @_;
+    my $result = 1;
 
-	defined $k or $k = $n;
-	while ( $k-- ) { $result *= $n-- }
-	return $result;
+    defined $k or $k = $n;
+    while ( $k-- ) { $result *= $n-- }
+    return $result;
 }
 
 sub Dice {
-	my $number = shift || 1;
-	my $sides = shift || 6;
-	my $plus = shift;
-	while ( $number-- ) {
-		$plus += int( rand($sides) );
-	}
-	return $plus;
+    my $number = shift || 1;
+    my $sides  = shift || 6;
+    my $plus   = shift;
+    while ( $number-- ) {
+        $plus += int( rand($sides) );
+    }
+    return $plus;
 }
 
 sub RandInt {
-	my $low = shift || 0;
-	my $high = shift || 1;
+    my $low  = shift || 0;
+    my $high = shift || 1;
 
-	if ( $low > $high ) {
-		( $low, $high ) = ( $high, $low );
-	}
-	return $low + int( rand( $high - $low + 1 ) );
+    if ( $low > $high ) {
+        ( $low, $high ) = ( $high, $low );
+    }
+    return $low + int( rand( $high - $low + 1 ) );
 }
 
 sub RandomElement {
-	$_[0]->[ rand @{ $_[0] } ];
+    $_[0]->[ rand @{ $_[0] } ];
 }
 
 sub ShuffleArray {
-	my $array = shift;
-	for ( my $i = @$array; --$i; ) {
-		my $j = int rand ($i+1);
-		next if $i == $j;
-		@$array[$i,$j] = @$array[$j,$i];
-	}
+    my $array = shift;
+    for ( my $i = @$array ; --$i ; ) {
+        my $j = int rand( $i + 1 );
+        next if $i == $j;
+        @$array[ $i, $j ] = @$array[ $j, $i ];
+    }
 }
 
 sub Unique {
-	my $arrayref = shift;
-	my %seen = ();
-	my $zzz;
-	my @unique;
-	foreach $zzz ( @$arrayref ) {
-		push ( @unique, $zzz ) unless $seen{$zzz}++;
-	}
-	return @unique;
+    my $arrayref = shift;
+    my %seen     = ();
+    my $zzz;
+    my @unique;
+
+    foreach $zzz (@$arrayref) {
+        push ( @unique, $zzz ) unless $seen{$zzz}++;
+    }
+    return @unique;
 }
 
 sub Compare {
-	my ( $arrayref1, $arrayref2 ) = @_;
-	my %seen;
-	my @aonly;
-	my $item;
-	@seen{@$arrayref2} = ();
-	foreach $item ( @$arrayref1 ) {
-		push(@aonly, $item) unless $seen{$item};
-		$seen{$item} = 1;                       # mark as seen
-	}
-	return @aonly;
+    my ( $arrayref1, $arrayref2 ) = @_;
+    my %seen;
+    my @aonly;
+    my $item;
+    @seen{@$arrayref2} = ();
+
+    foreach $item (@$arrayref1) {
+        push ( @aonly, $item ) unless $seen{$item};
+        $seen{$item} = 1;    # mark as seen
+    }
+    return @aonly;
 }
 
 sub Union {
-	my ( $arrayref1, $arrayref2 ) = @_;
-	my @union = undef;
-	my @temp = undef;
-	my %union = ();
-	my $zzz;
-	push ( @temp, @$arrayref1 );
-	push ( @temp, @$arrayref2 );
-	foreach $zzz ( @temp ) {
-		$union{$zzz} = 1;
-	}
-	@union = keys %union;
-	return @union;
+    my ( $arrayref1, $arrayref2 ) = @_;
+    my @union = undef;
+    my @temp  = undef;
+    my %union = ();
+    my $zzz;
+    push ( @temp, @$arrayref1 );
+    push ( @temp, @$arrayref2 );
+
+    foreach $zzz (@temp) {
+        $union{$zzz} = 1;
+    }
+    @union = keys %union;
+    return @union;
 }
 
 sub Intersection {
-	my ( $arrayref1, $arrayref2 ) = @_;
-	my @isect = undef;
-	my %isect = ();
-	my %union = ();
-	my %count = ();
-	my $zzz;
-	foreach $zzz ( @$arrayref1 ) {
-		$union{$zzz} = 1;
-	}
-	foreach $zzz ( @$arrayref2 ) {
-		if ( $union{$zzz} ) {
-			$isect{$zzz} = 1;
-		}
-	}
-	@isect = keys %isect;
-	return @isect;
+    my ( $arrayref1, $arrayref2 ) = @_;
+    my @isect = undef;
+    my %isect = ();
+    my %union = ();
+    my %count = ();
+    my $zzz;
+
+    foreach $zzz (@$arrayref1) {
+        $union{$zzz} = 1;
+    }
+    foreach $zzz (@$arrayref2) {
+        if ( $union{$zzz} ) {
+            $isect{$zzz} = 1;
+        }
+    }
+    @isect = keys %isect;
+    return @isect;
 }
 
 sub Difference {
-     my ( $arrayref1, $arrayref2 ) = @_;
-     my ( @isect, @diff, @union ) = undef;
-     my $zzz;
-     my %count = ();
-     foreach $zzz (@$arrayref1, @$arrayref2) { $count{$zzz}++ }
-     foreach $zzz (keys %count) {
-          push @union, $zzz;
-          push @{ $count{$zzz} > 1 ? \@isect : \@diff }, $zzz;
-     }
-     return @diff;
+    my ( $arrayref1, $arrayref2 ) = @_;
+    my ( @isect, @diff, @union ) = undef;
+    my $zzz;
+    my %count = ();
+    foreach $zzz ( @$arrayref1, @$arrayref2 ) { $count{$zzz}++ }
+
+    foreach $zzz ( keys %count ) {
+        push @union, $zzz;
+        push @{ $count{$zzz} > 1 ? \@isect : \@diff }, $zzz;
+    }
+    return @diff;
 }
 
 sub GaussianRand {
-	my ($u1, $u2);
-	my $w;
-	my ($g1, $g2);
+    my ( $u1, $u2 );
+    my $w;
+    my ( $g1, $g2 );
 
-	while ( $w >= 1 ) {
-		$u1 = 2 * rand() - 1;
-		$u2 = 2 * rand() - 1;
-		$w = $u1 * $u1 + $u2 * $u2;
-	}
+    while ( $w >= 1 ) {
+        $u1 = 2 * rand() - 1;
+        $u2 = 2 * rand() - 1;
+        $w  = $u1 * $u1 + $u2 * $u2;
+    }
 
-	$w = sqrt( (-2 * log($w))  / $w );
-	$g2 = $u1 * $w;
-	$g1 = $u2 * $w;
-	return wantarray ? ($g1, $g2) : $g1;
+    $w  = sqrt( ( -2 * log($w) ) / $w );
+    $g2 = $u1 * $w;
+    $g1 = $u2 * $w;
+    return wantarray ? ( $g1, $g2 ) : $g1;
 }
 
-sub Choose { # Probability of getting $k heads is $n tosses
-	my ( $n, $k ) = @_;
-	my ( $result, $j ) = ( 1, 1 );
-	if ( $k > $n || $k < 0 ) {
-		return 0;
-	}
-	while ( $j <= $k ) {
-		$result *= $n--;
-		$result /= $j++;
-	}
-	return $result;
+sub Choose {    # Probability of getting $k heads is $n tosses
+    my ( $n, $k ) = @_;
+    my ( $result, $j ) = ( 1, 1 );
+    if ( $k > $n || $k < 0 ) {
+        return 0;
+    }
+
+    while ( $j <= $k ) {
+        $result *= $n--;
+        $result /= $j++;
+    }
+    return $result;
 }
 
-sub Binomial { # probability of $k successes in $n attempts, given probability of $p
-	my ( $n, $k, $p ) = @_;
-	return $k == 0 if $p == 0;
-	return $k != $n if $p == 1;
-	return Choose( $n, $k ) * $p ** $k * ( 1 - $p ) ** ( $n - $k );
+sub Binomial {    # probability of $k successes in $n attempts, given probability of $p
+    my ( $n, $k, $p ) = @_;
+    return $k == 0 if $p == 0;
+    return $k != $n if $p == 1;
+    return Choose( $n, $k ) * $p**$k * ( 1 - $p )**( $n - $k );
 }
 
 sub GaussianDist {
-	use constant two_pi_sqrt_inverse => 1 / sqrt( 8 * atan2( 1, 1 ) );
-	my ( $x, $mean, $variance ) = @_;
-	return two_pi_sqrt_inverse * exp( -( $x - $mean ) ** 2 /
-		( 2 * $variance ) ) / sqrt $variance;
+    use constant two_pi_sqrt_inverse => 1 / sqrt( 8 * atan2( 1, 1 ) );
+    my ( $x, $mean, $variance ) = @_;
+    return two_pi_sqrt_inverse * exp( -( $x - $mean )**2 / ( 2 * $variance ) ) /
+      sqrt $variance;
 }
 
 sub StandardDeviation {
-	my $arrayref = shift;
-	my $mean = Mean( $arrayref );
-	return sqrt( Mean( [map $_ ** 2, @$arrayref] ) - ( $mean ** 2 ) );
+    my $arrayref = shift;
+    my $mean = Mean($arrayref);
+    return sqrt( Mean( [ map $_**2, @$arrayref ] ) - ( $mean**2 ) );
 }
 
 sub Variance {
-	my $arrayref = shift;
-	return StandardDeviation( $arrayref ) ** 2;
+    my $arrayref = shift;
+    return StandardDeviation($arrayref)**2;
 }
 
-sub StandardScores { # number of StdDevs above the mean for each element
-	my $arrayref = shift;
-	my $mean = Mean( $arrayref );
-	my ( $i, @scores );
-	my $deviation = StandardDeviation( $arrayref );
-	return unless $deviation;
-	for ( $i = 0; $i < @$arrayref; $i++ ) {
-		push @scores, ( $arrayref->[$i] - $mean ) / $deviation;
-	}
-	return @scores;
+sub StandardScores {    # number of StdDevs above the mean for each element
+    my $arrayref = shift;
+    my $mean     = Mean($arrayref);
+    my ( $i, @scores );
+    my $deviation = StandardDeviation($arrayref);
+    return unless $deviation;
+
+    for ( $i = 0 ; $i < @$arrayref ; $i++ ) {
+        push @scores, ( $arrayref->[$i] - $mean ) / $deviation;
+    }
+    return @scores;
 }
 
 sub SignSignificance {
-	my ( $trials, $hits, $probability ) = @_;
-	my $confidence;
-	foreach ( $hits..$trials ) {
-		$confidence += Binomial( $trials, $hits, $probability );
-	}
-	return $confidence;
+    my ( $trials, $hits, $probability ) = @_;
+    my $confidence;
+    foreach ( $hits .. $trials ) {
+        $confidence += Binomial( $trials, $hits, $probability );
+    }
+    return $confidence;
 }
 
-
 sub EMC2 {
-	my $var = shift;
-	my $unit = shift;
-	my $C;
-	if ( $unit eq "" ) {
-		$C = 299792.458; # km per second
-	} else {
-		$C = 186282.056; # miles per second
-	}
-	my $result;
-	$var = lc $var;
-	if ( $var =~ /^m(.*)$/ ) {
-		my $val = $1;
-		$result = $val * $C ** 2;
-	} elsif ( $var =~ /^e(.*)$/ ) {
-		my $val = new Math::BigFloat $1;
-		$result = $val->fdiv( $C ** 2 );
-	} else {
-		return undef;
-	}
-	return $result;
+    my $var  = shift;
+    my $unit = shift;
+    my $C;
+    if ( $unit eq "" ) {
+        $C = 299792.458;    # km per second
+    } else {
+        $C = 186282.056;    # miles per second
+    }
+    my $result;
+    $var = lc $var;
+
+    if ( $var =~ /^m(.*)$/ ) {
+        my $val = $1;
+        $result = $val * $C**2;
+    } elsif ( $var =~ /^e(.*)$/ ) {
+        my $val = new Math::BigFloat $1;
+        $result = $val->fdiv( $C**2 );
+    } else {
+        return undef;
+    }
+    return $result;
 }
 
 sub FMA {
-	my @vars = @_;
-	@vars = sort @vars;
-	my ( $result, $acc, $force, $mass ) = undef;
-	if ( $vars[0] =~ /^[Aa](.*)$/ ) {
-		$acc = $1;
-	} elsif ( $vars[0] =~ /^[Ff](.*)$/ ) {
-		$force = $1;
-	}
-	if ( $vars[1] =~ /^[Ff](.*)$/ ) {
-		$force = $1;
-	} elsif ( $vars[1] =~ /^[Mm](.*)$/ ) {
-		$mass = $1;
-	}
-	if ( $acc && $force ) {
-		$result = $force / $acc;
-	} elsif ( $acc && $mass ) {
-		$result = $acc * $mass;
-	} elsif ( $force && $mass ) {
-		$result = $force / $mass;
-	} else {
-		return undef;
-	}
-	return $result;
+    my @vars = @_;
+    @vars = sort @vars;
+    my ( $result, $acc, $force, $mass ) = undef;
+    if ( $vars[0] =~ /^[Aa](.*)$/ ) {
+        $acc = $1;
+    } elsif ( $vars[0] =~ /^[Ff](.*)$/ ) {
+        $force = $1;
+    }
+
+    if ( $vars[1] =~ /^[Ff](.*)$/ ) {
+        $force = $1;
+    } elsif ( $vars[1] =~ /^[Mm](.*)$/ ) {
+        $mass = $1;
+    }
+
+    if ( $acc && $force ) {
+        $result = $force / $acc;
+    } elsif ( $acc && $mass ) {
+        $result = $acc * $mass;
+    } elsif ( $force && $mass ) {
+        $result = $force / $mass;
+    } else {
+        return undef;
+    }
+    return $result;
 }
 
 sub Predict {
-	my ( $slope, $y_intercept, $proposed ) = @_;
-	return $slope * $proposed + $y_intercept;
+    my ( $slope, $y_intercept, $proposed ) = @_;
+    return $slope * $proposed + $y_intercept;
 }
 
 sub TriangleHeron {
-	my ( $a, $b, $c );
-	
-	if ( @_ == 3 ) { 
-		( $a, $b, $c ) = @_;
-	} elsif ( @_ == 6 ) {
-		( $a, $b, $c ) = (
-			Distance( $_[0], $_[1], $_[2], $_[3] ),
-			Distance( $_[2], $_[3], $_[4], $_[5] ),
-			Distance( $_[4], $_[5], $_[0], $_[1] ) );
-	}
-	my $s = ( $a + $b + $c ) / 2;
-	return sqrt( $s * ( $s - $a ) * ( $s - $b ) * ( $s - $c ) );
-}												
+    my ( $a, $b, $c );
+
+    if ( @_ == 3 ) {
+        ( $a, $b, $c ) = @_;
+    }
+    elsif ( @_ == 6 ) {
+        ( $a, $b, $c ) = (
+          Distance( $_[0], $_[1], $_[2], $_[3] ),
+          Distance( $_[2], $_[3], $_[4], $_[5] ),
+          Distance( $_[4], $_[5], $_[0], $_[1] )
+        );
+    }
+    my $s = ( $a + $b + $c ) / 2;
+    return sqrt( $s * ( $s - $a ) * ( $s - $b ) * ( $s - $c ) );
+}
 
 sub PolygonPerimeter {
-	my @xy = @_;
-	my $P = 0;
-	
-	for ( my ( $xa, $ya ) = @xy[ -2, -1 ]; my ( $xb, $yb ) = splice @xy, 0, 2; ( $xa, $ya ) = ( $xb, $yb ) ) {
-		$P += Distance( $xa, $ya, $xb, $yb );
-	}
-	
-	return $P;
+    my @xy = @_;
+    my $P  = 0;
+
+    for ( my ( $xa, $ya ) = @xy[ -2, -1 ] ; my ( $xb, $yb ) = splice @xy, 0,
+      2 ; ( $xa, $ya ) = ( $xb, $yb ) )
+    {
+        $P += Distance( $xa, $ya, $xb, $yb );
+    }
+
+    return $P;
 }
 
 sub Clockwise {
-	my ( $x0, $y0, $x1, $y1, $x2, $y2 ) = @_;
-	return ( $x2 - $x0 ) * ( $y1 - $y0 ) - ( $x1 - $x0 ) * ( $y2 - $y0 );
+    my ( $x0, $y0, $x1, $y1, $x2, $y2 ) = @_;
+    return ( $x2 - $x0 ) * ( $y1 - $y0 ) - ( $x1 - $x0 ) * ( $y2 - $y0 );
 }
 
 sub InPolygon {
-	my ( $x, $y, @xy ) = @_;
-	
-	my $n = @xy / 2;
-	my @i = map { 2 * $_ } 0 .. (@xy/2);
-	my @x = map { $xy[ $_ ] } @i;
-	my @y = map { $xy[ $_ + 1 ] } @i;
-	
-	my ( $i, $j );
-	my $side = 0;
-	
-	for ( $i = 0, $j = $n - 1; $i < $n; $j = $i++ ) {
-		if (
-			(
-				( ( $y[ $i ] <= $y ) && ( $y < $y[ $j ] ) ) ||
-				( ( $y[ $j ] <= $y ) && ( $y < $y[ $i ] ) )
-			)
-			and
-			(
-				$x < ( $x[ $j ] - $x[ $i ] ) * ( $y - $y[ $i ] ) / ( $y[ $j ] - $y[ $i ] ) + $x[ $i ] 
-			) )
-		{
-			$side = not $side;
-		}
-	}
-	return $side ? 1 : 0;
+    my ( $x, $y, @xy ) = @_;
+
+    my $n = @xy / 2;
+    my @i = map { 2 * $_ } 0 .. ( @xy / 2 );
+    my @x = map { $xy[$_] } @i;
+    my @y = map { $xy[ $_ + 1 ] } @i;
+
+    my ( $i, $j );
+    my $side = 0;
+
+    for ( $i = 0, $j = $n - 1 ; $i < $n ; $j = $i++ ) {
+        if ( ( ( ( $y[$i] <= $y ) && ( $y < $y[$j] ) )
+          || ( ( $y[$j] <= $y ) && ( $y < $y[$i] ) ) )
+          and ( $x <
+          ( $x[$j] - $x[$i] ) * ( $y - $y[$i] ) / ( $y[$j] - $y[$i] ) + $x[$i] )
+          )
+        {
+            $side = not $side;
+        }
+    }
+    return $side ? 1 : 0;
 }
 
-sub BoundingBox_Points { 
-	my ( $d, @points ) = @_;
-	my @bb;
-	while ( my @p = splice @points, 0, $d ) {
-		@bb = BoundingBox( $d, @p, @bb );
-	}
-	return @bb;
+sub BoundingBox_Points {
+    my ( $d, @points ) = @_;
+    my @bb;
+    while ( my @p = splice @points, 0, $d ) {
+        @bb = BoundingBox( $d, @p, @bb );
+    }
+    return @bb;
 }
 
 sub BoundingBox {
-	my ( $d, @bb ) = @_;
-	my @p = splice( @bb, 0, @bb - 2 * $d );
-	
-	@bb = ( @p, @p ) unless @bb;
-	
-	for ( my $i = 0; $i < $d; $i++ ) {
-		for ( my $j = 0; $j < @p; $j += $d ) {
-			my $ij = $i + $j;
-			$bb[$i] = $p[$ij] if $p[$ij] < $bb[$i];
-			$bb[$i+$d] = $p[$ij] if $p[$ij] > $bb[$i+$d];
-		}
-	}
-	return @bb;
+    my ( $d, @bb ) = @_;
+    my @p = splice( @bb, 0, @bb - 2 * $d );
+
+    @bb = ( @p, @p ) unless @bb;
+
+    for ( my $i = 0 ; $i < $d ; $i++ ) {
+        for ( my $j = 0 ; $j < @p ; $j += $d ) {
+            my $ij = $i + $j;
+            $bb[$i] = $p[$ij] if $p[$ij] < $bb[$i];
+            $bb[ $i + $d ] = $p[$ij] if $p[$ij] > $bb[ $i + $d ];
+        }
+    }
+    return @bb;
 }
 
 sub InTriangle {
-	my ( $x, $y, $x0, $y0, $x1, $y1, $x2, $y2 ) = @_;
-	my $cw0 = Clockwise( $x0, $y0, $x1, $y1, $x, $y );
-	return 1 if abs( $cw0 ) < epsilon;
-	my $cw1 = Clockwise( $x1, $y1, $x2, $y2, $x, $y );
-	return 1 if abs( $cw1 ) < epsilon;
-	return 0 if ( $cw0 < 0 and $cw1 > 0 ) or ( $cw0 > 0 and $cw1 < 0 );
-	
-	my $cw2 = Clockwise( $x2, $y2, $x0, $y0, $x, $y );
-	return 1 if abs( $cw2 ) < epsilon;
-	return 0 if ( $cw0 < 0 and $cw2 > 0 ) or ( $cw0 > 0 and $cw2 < 0 );
-	
-	return 1;
+    my ( $x, $y, $x0, $y0, $x1, $y1, $x2, $y2 ) = @_;
+    my $cw0 = Clockwise( $x0, $y0, $x1, $y1, $x, $y );
+    return 1 if abs($cw0) < epsilon;
+    my $cw1 = Clockwise( $x1, $y1, $x2, $y2, $x, $y );
+    return 1 if abs($cw1) < epsilon;
+    return 0 if ( $cw0 < 0 and $cw1 > 0 ) or ( $cw0 > 0 and $cw1 < 0 );
+
+    my $cw2 = Clockwise( $x2, $y2, $x0, $y0, $x, $y );
+    return 1 if abs($cw2) < epsilon;
+    return 0 if ( $cw0 < 0 and $cw2 > 0 ) or ( $cw0 > 0 and $cw2 < 0 );
+
+    return 1;
 }
 
 sub PolygonArea {
-	my @xy = @_;
-	my $A = 0;
-	for ( my ( $xa, $ya ) = @xy[-2, -1];
-		my ( $xb, $yb ) = splice @xy, 0, 2;
-		( $xa, $ya ) = ( $xb, $yb ) ) {
-		$A += Determinant( $xa, $ya, $xb, $yb );
-	}
-	return abs $A / 2;
+    my @xy = @_;
+    my $A = 0;
+    for ( my ( $xa, $ya ) = @xy[ -2, -1 ] ;
+      my ( $xb, $yb ) = splice @xy, 0, 2 ;
+      ( $xa, $ya ) = ( $xb, $yb ) )
+    {
+        $A += Determinant( $xa, $ya, $xb, $yb );
+    }
+    return abs $A / 2;
 }
 
 sub Determinant {
-	$_[0] * $_[3] - $_[1] * $_[2];
-}	
+    $_[0] * $_[3] - $_[1] * $_[2];
+}
 
 sub CircleArea {
-	my $radius = shift;
-	my $area = $PI * ($radius ** 2);
-	return $area;
+    my $radius = shift;
+    my $area   = $PI * ( $radius**2 );
+    return $area;
 }
 
 sub Circumference {
-	my $diameter = shift;
-	return $PI * $diameter;
+    my $diameter = shift;
+    return $PI * $diameter;
 }
 
-sub SphereVolume { 
-	my $radius = shift;
-	my $volume = (4/3) * $PI * ($radius ** 3);
-	return $volume;
+sub SphereVolume {
+    my $radius = shift;
+    my $volume = ( 4 / 3 ) * $PI * ( $radius**3 );
+    return $volume;
 }
 
 sub SphereSurface {
-	my $radius = shift;
-	my $surface = 4 * $PI * ($radius ** 2);
-	return $surface;
+    my $radius  = shift;
+    my $surface = 4 * $PI * ( $radius**2 );
+    return $surface;
+}
+
+sub RuleOf72 {
+		my $pct = shift;
+		return 72 / $pct;
+}
+
+sub CylinderVolume {
+		my ( $radius, $height ) = @_;
+		return $PI * ( $radius ** 2 ) * $height;
+}
+
+sub ConeVolume {
+		my ( $lowerbase, $height ) = @_;
+		return (1/3) * $lowerbase * $height;
+}
+
+sub deg2rad {
+		my $degrees = shift;
+		return ( $degrees / 180 ) * $PI;
+}
+
+sub rad2deg {
+		my $radians = shift;
+		return ( $radians / $PI ) * 180;
+}
+
+sub C2F {
+		my $degrees = shift;
+		return $degrees * 1.8 + 32;
+}
+
+sub F2C {
+		my $degrees = shift;
+		return ( $degrees - 32 ) / 1.8;
+}
+
+sub cm2in {
+		my $cm = shift;
+		return $cm * 0.3937007874;
+}
+
+sub in2cm {
+		my $inches = shift;
+		return $inches * 2.54;
+}
+
+sub m2ft {
+		my $meters = shift;
+		return $meters * 3.280839895;
+}
+
+sub ft2m {
+		my $feet = shift;
+		return $feet * 0.3048;
+}
+
+sub kg2lb { 
+		my $kg = shift;
+		return $kg * 2.204622622;
+}
+
+sub lb2kg {
+		my $lb = shift;
+		return $lb * 0.45359237;
+}
+
+sub RelativeStride {
+		my ( $stride_length, $leg_length ) = @_;
+		return $stride_length / $leg_length;
+}
+
+sub RelativeStride_2 {
+		my $DS = shift;
+		return 1.1 * $DS + 1;
+}
+
+sub DimensionlessSpeed {
+		my $RSL = shift;
+		return ( $RSL - 1 ) / 1.1;
+}
+
+sub ActualSpeed {
+		my ( $legLength, $dimensionlessSpeed ) = @_;
+		return ( sqrt( $legLength * 9.80665 ) ) * $dimensionlessSpeed;
 }
 
 1;
@@ -659,6 +762,36 @@ $volume = Math::NumberCruncher::SphereVolume( $radius );
 
 $surface_area = Math::NumberCruncher::SphereSurface( $radius );
 
+$years = Math::NumberCruncher::RuleOf72( $interest_rate );
+
+$volume = Math::NumberCruncher::CylinderVolume( $radius, $height );
+
+$volume = Math::NumberCruncher::ConeVolume( $lowerBaseArea, $height );
+
+$radians = Math::NumberCruncher::deg2rad( $degrees );
+
+$degrees = Math::NumberCruncher::rad2deg( $radians );
+
+$Fahrenheit = Math::NumberCruncher::C2F( $Celsius );
+
+$Celsius = Math::NumberCruncher::F2C( $Fahrenheit );
+
+$cm = Math::NumberCruncher::in2cm( $inches );
+
+$inches = Math::NumberCruncher::cm2in( $cm );
+
+$lb = Math::NumberCruncher::kg2lb( $kg );
+
+$kg = Math::NumberCruncher::lb2kg( $lb );
+
+$RelativeStride = Math::NumberCruncher::RelativeStride( $stride_length, $leg_length );
+
+$RelativeStride = Math::NumberCruncher::RelativeStride_2( $DimensionlessSpeed );
+
+$DimensionlessSpeed = Math::NumberCruncher::DimensionlessSpeed( $RelativeStride );
+
+$ActualSpeed = Math::NumberCruncher::ActualSpeed( $leg_length, $DimensionlessSpeed );
+
 =head1 DESCRIPTION
 
 This module is a collection of commonly needed number-related functions, including numerous
@@ -667,8 +800,10 @@ directly from _Mastering Algorithms with Perl_, by Jon Orwant, Jarkko Hietaniemi
 Macdonald, and others are adapted heavily from same.  The remainder are either original
 functions written by the author, or original adaptations of standard algorithms.  Some of the
 functions are fairly obvious, others are explained in greater detail below.  For all 
-calculations involving pi, the value of pi is taken out to 100 places. Overkill? Probably, 
-but it is better, in my opinion, to have too much accuracy as opposed to not enough.
+calculations involving pi, the value of pi is taken out to 200 places. Overkill? Probably, 
+but it is better, in my opinion, to have too much accuracy as opposed to not enough. I've 
+also included the value of e out to 200 places. Both pi and e are available for export as 
+$PI and $_e_.
 
 =head1 EXAMPLES
 
@@ -903,6 +1038,70 @@ Calculates the volume of a sphere, given the radius.
 =item $surface_area = B<Math::NumberCruncher::SphereSurface>( $radius );
 
 Calculates the surface area of a sphere, given the radius.
+
+=item $years = B<Math::NumberCruncher::RuleOf72>( $interest_rate );
+
+A very simple financial formula. It calculates how many years, at a given 
+interest rate, it will take to double your money, provided that the money 
+and all interest is left in the account.
+
+=item $volume = B<Math::NumberCruncher::CylinderVolume>( $radius, $height );
+
+Calculates the volume of a cylinder given the radius and the height.
+
+=item $volume = B<Math::NumberCruncher::ConeVolume>( $lowerBaseArea, $height );
+
+Calculates the volume of a cone given the lower base area and the height.
+
+=item $radians = B<Math::NumberCruncher::deg2rad>( $degrees );
+
+Converts degrees to radians.
+
+=item $degrees = B<Math::NumberCruncher::rad2deg>( $radians );
+
+Converts radians to degrees.
+
+=item $Fahrenheit = B<Math::NumberCruncher::C2F>( $Celsius );
+
+Converts Celsius to Fahrenheit.
+
+=item $Celsius = B<Math::NumberCruncher::F2C>( $Fahrenheit );
+
+Converts Fahrenheit to Celsius.
+
+=item $cm = B<Math::NumberCruncher::in2cm>( $inches );
+
+Converts inches to centimeters.
+
+=item $inches = B<Math::NumberCruncher::cm2in>( $cm );
+
+Converts centimeters to inches.
+
+=item $lb = B<Math::NumberCruncher::kg2lb>( $kg );
+
+Converts kilograms to pounds.
+
+=item $kg = B<Math::NumberCruncher::lb2kg>( $lb );
+
+Converts pounds to kilograms.
+
+=item $RelativeStride = B<Math::NumberCruncher::RelativeStride>( $stride_length, $leg_length );
+
+Welcome to the world of ichnology. This was originally for a dinosaur simulation I 
+have been working on. This and the following three routines are all part of determining 
+the speed of a dinosaur, based on leg measurements and stride measurements. Ichnology is 
+study of trace fossils (i.e., nests, eggs, fossilized dung...seriously, that's not a joke), 
+and in this case, fossilized footprints, or trackways. RelativeStride() is for determining 
+the relative stride of the animal given stride length and leg length.
+
+=item $RelativeStride = B<Math::NumberCruncher::RelativeStride_2>( $DimensionlessSpeed );
+
+This differs from the previous routine in that it calculates relative stride based on 
+dimensionless speed, rather than stride and leg length.
+
+=item $DimensionlessSpeed = B<Math::NumberCruncher::DimensionlessSpeed>( $RelativeStride );
+
+=item $ActualSpeed = B<Math::NumberCruncher::ActualSpeed>( $leg_length, $DimensionlessSpeed );
 
 =head1 AUTHOR
 

@@ -1,5 +1,28 @@
 Revision history for Perl extension Math::NumberCruncher.
 
+2.2  Wed Jun 26 10:54:05 2001
+	- Made minor change to Mean() and Range() to return undef 
+		on error. (Thanks to Ronald Blaschke, M.S.)
+	- Added the following:
+		RuleOf72()
+		CylinderVolume()
+		ConeVolume()
+		Deg2Rad()
+		Rad2Deg()
+		C2F()
+		F2C()
+		in2cm()
+		cm2in()
+		ft2m()
+		m2ft()
+		kg2lb()
+		lb2kg()
+		RelativeStride()
+		RelativeStride_2()
+		DimensionlessSpeed()
+		ActualSpeed()
+        - Added value of e out to 200 places.
+
 2.0  Mon Feb 12 11:50:58 2001
 	- Added many new features:
 		TriangleHeron()
