@@ -4,8 +4,13 @@ require Exporter;
 
 @ISA = qw(Exporter AutoLoader);
 
-$VERSION = '1.3';
+$VERSION = '2.0';
+
 use strict;
+use constant epsilon => 1E-10;
+use Math::BigFloat;
+
+my $PI = new Math::BigFloat "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196";
 
 sub Range {
 	my $arrayref = shift;
@@ -347,6 +352,7 @@ sub SignSignificance {
 	return $confidence;
 }
 
+
 sub EMC2 {
 	my $var = shift;
 	my $unit = shift;
@@ -362,7 +368,6 @@ sub EMC2 {
 		my $val = $1;
 		$result = $val * $C ** 2;
 	} elsif ( $var =~ /^e(.*)$/ ) {
-		use Math::BigFloat;
 		my $val = new Math::BigFloat $1;
 		$result = $val->fdiv( $C ** 2 );
 	} else {
@@ -400,6 +405,143 @@ sub FMA {
 sub Predict {
 	my ( $slope, $y_intercept, $proposed ) = @_;
 	return $slope * $proposed + $y_intercept;
+}
+
+sub TriangleHeron {
+	my ( $a, $b, $c );
+	
+	if ( @_ == 3 ) { 
+		( $a, $b, $c ) = @_;
+	} elsif ( @_ == 6 ) {
+		( $a, $b, $c ) = (
+			Distance( $_[0], $_[1], $_[2], $_[3] ),
+			Distance( $_[2], $_[3], $_[4], $_[5] ),
+			Distance( $_[4], $_[5], $_[0], $_[1] ) );
+	}
+	my $s = ( $a + $b + $c ) / 2;
+	return sqrt( $s * ( $s - $a ) * ( $s - $b ) * ( $s - $c ) );
+}												
+
+sub PolygonPerimeter {
+	my @xy = @_;
+	my $P = 0;
+	
+	for ( my ( $xa, $ya ) = @xy[ -2, -1 ]; my ( $xb, $yb ) = splice @xy, 0, 2; ( $xa, $ya ) = ( $xb, $yb ) ) {
+		$P += Distance( $xa, $ya, $xb, $yb );
+	}
+	
+	return $P;
+}
+
+sub Clockwise {
+	my ( $x0, $y0, $x1, $y1, $x2, $y2 ) = @_;
+	return ( $x2 - $x0 ) * ( $y1 - $y0 ) - ( $x1 - $x0 ) * ( $y2 - $y0 );
+}
+
+sub InPolygon {
+	my ( $x, $y, @xy ) = @_;
+	
+	my $n = @xy / 2;
+	my @i = map { 2 * $_ } 0 .. (@xy/2);
+	my @x = map { $xy[ $_ ] } @i;
+	my @y = map { $xy[ $_ + 1 ] } @i;
+	
+	my ( $i, $j );
+	my $side = 0;
+	
+	for ( $i = 0, $j = $n - 1; $i < $n; $j = $i++ ) {
+		if (
+			(
+				( ( $y[ $i ] <= $y ) && ( $y < $y[ $j ] ) ) ||
+				( ( $y[ $j ] <= $y ) && ( $y < $y[ $i ] ) )
+			)
+			and
+			(
+				$x < ( $x[ $j ] - $x[ $i ] ) * ( $y - $y[ $i ] ) / ( $y[ $j ] - $y[ $i ] ) + $x[ $i ] 
+			) )
+		{
+			$side = not $side;
+		}
+	}
+	return $side ? 1 : 0;
+}
+
+sub BoundingBox_Points { 
+	my ( $d, @points ) = @_;
+	my @bb;
+	while ( my @p = splice @points, 0, $d ) {
+		@bb = BoundingBox( $d, @p, @bb );
+	}
+	return @bb;
+}
+
+sub BoundingBox {
+	my ( $d, @bb ) = @_;
+	my @p = splice( @bb, 0, @bb - 2 * $d );
+	
+	@bb = ( @p, @p ) unless @bb;
+	
+	for ( my $i = 0; $i < $d; $i++ ) {
+		for ( my $j = 0; $j < @p; $j += $d ) {
+			my $ij = $i + $j;
+			$bb[$i] = $p[$ij] if $p[$ij] < $bb[$i];
+			$bb[$i+$d] = $p[$ij] if $p[$ij] > $bb[$i+$d];
+		}
+	}
+	return @bb;
+}
+
+sub InTriangle {
+	my ( $x, $y, $x0, $y0, $x1, $y1, $x2, $y2 ) = @_;
+	my $cw0 = Clockwise( $x0, $y0, $x1, $y1, $x, $y );
+	return 1 if abs( $cw0 ) < epsilon;
+	my $cw1 = Clockwise( $x1, $y1, $x2, $y2, $x, $y );
+	return 1 if abs( $cw1 ) < epsilon;
+	return 0 if ( $cw0 < 0 and $cw1 > 0 ) or ( $cw0 > 0 and $cw1 < 0 );
+	
+	my $cw2 = Clockwise( $x2, $y2, $x0, $y0, $x, $y );
+	return 1 if abs( $cw2 ) < epsilon;
+	return 0 if ( $cw0 < 0 and $cw2 > 0 ) or ( $cw0 > 0 and $cw2 < 0 );
+	
+	return 1;
+}
+
+sub PolygonArea {
+	my @xy = @_;
+	my $A = 0;
+	for ( my ( $xa, $ya ) = @xy[-2, -1];
+		my ( $xb, $yb ) = splice @xy, 0, 2;
+		( $xa, $ya ) = ( $xb, $yb ) ) {
+		$A += Determinant( $xa, $ya, $xb, $yb );
+	}
+	return abs $A / 2;
+}
+
+sub Determinant {
+	$_[0] * $_[3] - $_[1] * $_[2];
+}	
+
+sub CircleArea {
+	my $radius = shift;
+	my $area = $PI * ($radius ** 2);
+	return $area;
+}
+
+sub Circumference {
+	my $diameter = shift;
+	return $PI * $diameter;
+}
+
+sub SphereVolume { 
+	my $radius = shift;
+	my $volume = (4/3) * $PI * ($radius ** 3);
+	return $volume;
+}
+
+sub SphereSurface {
+	my $radius = shift;
+	my $surface = 4 * $PI * ($radius ** 2);
+	return $surface;
 }
 
 1;
@@ -493,6 +635,30 @@ $acceleration = Math::NumberCruncher::FMA( "f53512", "m356" );
 
 $predicted_value = Math::NubmerCruncher::Predict( $slope, $y_intercept, $proposed_x );
 
+$area = Math::NumberCruncher::TriangleHeron( $a, $b, $c );
+
+$area = Math::NumberCruncher::TriangleHeron( 1,3, 5,7, 8,2 );
+
+$perimeter = Math::NumberCruncher::PolygonPerimeter( $x0,$y0, $x1,$y1, $x2,$y2, ...);
+
+$direction = Math::NumberCruncher::Clockwise( $x0,$y0, $x1,$y1, $x2,$y2 );
+
+$collision = Math::NumberCruncher::InPolygon( $x, $y, @xy );
+
+@points = Math::NumberCruncher::BoundingBox_Points( $d, @p );
+
+$in_triangle = Math::NumberCruncher::InTriangle( $x,$y, $x0,$y0, $x1,$y1, $x2,$y2 );
+
+$area = Math::NumberCruncher::PolygonArea( 0, 1, 1, 0, 2, 0, 3, 2, 2, 3 );
+
+$area = Math::NumberCruncher::CircleArea( $diameter );
+
+$circumference = Math::NumberCruncher::Circumference( $diameter );
+
+$volume = Math::NumberCruncher::SphereVolume( $radius );
+
+$surface_area = Math::NumberCruncher::SphereSurface( $radius );
+
 =head1 DESCRIPTION
 
 This module is a collection of commonly needed number-related functions, including numerous
@@ -500,7 +666,9 @@ standard statistical, geometric, and probability functions.  Some of these funct
 directly from _Mastering Algorithms with Perl_, by Jon Orwant, Jarkko Hietaniemi, and John
 Macdonald, and others are adapted heavily from same.  The remainder are either original
 functions written by the author, or original adaptations of standard algorithms.  Some of the
-functions are fairly obvious, others are explained in greater detail below.
+functions are fairly obvious, others are explained in greater detail below.  For all 
+calculations involving pi, the value of pi is taken out to 100 places. Overkill? Probably, 
+but it is better, in my opinion, to have too much accuracy as opposed to not enough.
 
 =head1 EXAMPLES
 
@@ -684,6 +852,57 @@ must be preceeded by a "f," and acceleration must be preceeded by an "a."  Case 
 
 Useful for predicting values based on data trends, as calculated by BestFit(). Given the slope
 and y-intercept, and a proposed value of x, returns corresponding y.
+
+=item $area = B<Math::NumberCruncher::TriangleHeron>( $a, $b, $c );
+
+Calculates the area of a triangle, using Heron's formula.  TriangleHeron() can be passed 
+either the lengths of the three sides of the triangle, or the (x,y) coordinates of the 
+three verticies.
+
+=item $perimeter = B<Math::NumberCruncher::PolygonPerimeter>( $x0,$y0, $x1,$y1, $x2,$y2, ...);
+
+Calculates the length of the perimeter of a given polygon.
+
+=item $direction = B<Math::NumberCruncher::Clockwise>( $x0,$y0, $x1,$y1, $x2,$y2 );
+
+Given three pairs of points, returns a positive number if you must turn clockwise when 
+moving from p1 to p2 to p3, returns a negative number if you must turn counter-clockwise
+when moving from p1 to p2 to p3, and a zero if the three points lie on the same line.
+
+=item $collision = B<Math::NumberCruncher::InPolygon>( $x, $y, @xy );
+
+Given a set of xy pairs (@xy) that define the perimeter of a polygon, returns a 1 if 
+point ($x,$y) is inside the polygon and returns 0 if the point ($x,$y) is outside the polygon.
+
+=item @points = B<Math::NumberCruncher::BoundingBox_Points>( $d, @p );
+
+Given a set of @p points and $d dimensions, returns two points that define the upper left and
+lower right corners of the bounding box for set of points @p.
+
+=item $in_triangle = B<Math::NumberCruncher::InTriangle>( $x,$y, $x0,$y0, $x1,$y1, $x2,$y2 );
+
+Returns true if point $x,$y is inside the triangle defined by points ($x0,$y0), ($x1,$y1), 
+and ($x2,$y2)
+
+=item $area = B<Math::NumberCruncher::PolygonArea>( 0, 1, 1, 0, 3, 2, 2, 3, 0, 2 );
+
+Calculates the area of a polygon using determinants.
+
+=item $area = B<Math::NumberCruncher::CircleArea>( $diameter );
+
+Calculates the area of a circle, given the diameter.
+
+=item $circumference = B<Math::NumberCruncher::Circumference>( $diameter );
+
+Calculates the circumference of a circle, given the diameter.
+
+=item $volume = B<Math::NumberCruncher::SphereVolume>( $radius );
+
+Calculates the volume of a sphere, given the radius.
+
+=item $surface_area = B<Math::NumberCruncher::SphereSurface>( $radius );
+
+Calculates the surface area of a sphere, given the radius.
 
 =head1 AUTHOR
 
