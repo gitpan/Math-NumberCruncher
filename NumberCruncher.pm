@@ -4,7 +4,7 @@ require Exporter;
 
 @ISA = qw(Exporter AutoLoader);
 
-$VERSION = '1.21';
+$VERSION = '1.3';
 use strict;
 
 sub Range {
@@ -259,14 +259,16 @@ sub Intersection {
 }
 
 sub Difference {
-	my ( $arrayref1, $arrayref2 ) = @_;
-	my ( @isect, @diff, @union ) = undef;
-	my $zzz;
-	my %count = ();
-	foreach $zzz ( @$arrayref1, @$arrayref2 ) {
-		push @{ $count{$zzz} == 1 ? \@isect : \@diff }, $zzz;
-	}
-	return @diff;
+     my ( $arrayref1, $arrayref2 ) = @_;
+     my ( @isect, @diff, @union ) = undef;
+     my $zzz;
+     my %count = ();
+     foreach $zzz (@$arrayref1, @$arrayref2) { $count{$zzz}++ }
+     foreach $zzz (keys %count) {
+          push @union, $zzz;
+          push @{ $count{$zzz} > 1 ? \@isect : \@diff }, $zzz;
+     }
+     return @diff;
 }
 
 sub GaussianRand {
