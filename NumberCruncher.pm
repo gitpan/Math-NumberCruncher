@@ -4,7 +4,7 @@ require Exporter;
 
 @ISA = qw(Exporter AutoLoader);
 
-$VERSION = '1.2';
+$VERSION = '1.21';
 use strict;
 
 sub Range {
@@ -129,7 +129,7 @@ sub ManhattanDistance {
 sub AllOf { 
 	my $result = 1;
 	while ( @_ ) {
-		$result += shift;
+		$result *= shift;
 	}
 	return $result;
 }

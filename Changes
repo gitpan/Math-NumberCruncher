@@ -1,8 +1,12 @@
 Revision history for Perl extension Math::NumberCruncher.
 
+1.21 Tue Sep 19 08:57:51 2000
+	- Corrected typo in AllOf()
+		(Thanks to Wim Verhaegen for finding the error.)
+
 1.2  Mon Sep 18 13:24:43 2000
 	- Fixed minor error in Range()
-	- Added Predict(), for predicting values of Y, given slope, y-intercept, and proposed
+	- Added Predict(), for predicting value of Y, given slope, y-intercept, and proposed
 		x value.
 
 1.1  Wed Aug 30 14:41:52 2000
