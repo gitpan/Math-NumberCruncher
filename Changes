@@ -1,5 +1,14 @@
 Revision history for Perl extension Math::NumberCruncher.
 
+3.1  Wed Jul 18 10:30:07 2001
+        - Modified Factorial() to use Math::BigFloat. This really
+          should have been there from the first release, but it
+          wasn't.
+        - Modified all routines that make calculations using pi to
+          also use Math::BigFloat.
+        - Expanded pi and e to 500 decimal places.
+        (Thanks to the folks at www.perlmonks.org for their input.)
+
 3.0  Mon Jul 02 10:41:09 2001
         - Fixed typo in Range()
         - Added data verification prior to processing to

@@ -13,14 +13,14 @@ require Exporter;
 @ISA       = qw(Exporter AutoLoader);
 @EXPORT_OK = qw($PI $_e_);
 
-$VERSION = '3.0';
+$VERSION = '3.1';
 
 use strict;
 use constant epsilon => 1E-10;
 use Math::BigFloat;
 
-my $PI = new Math::BigFloat "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196";
-my $_e_ = new Math::BigFloat "2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274274663919320030599218174135966290435729003342952605956307381323286279434907632338298807531952510190";
+my $PI = new Math::BigFloat "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458700660631558817488152092096282925409171536436789259036001133053054882046652138414695194151160943305727036575959195309218611738193261179310511854807446237996274956735188575272489122793818301194758";
+my $_e_ = new Math::BigFloat "2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642742746639193200305992181741359662904357290033429526059563073813232862794349076323382988075319525101901157383418793070215408914993488416750924476146066808226480016847741185374234544243710753907774499206955170276183860626133138458300075204493382656029760673711320070932870912744374704723069697720931014169283681902551510865746377211125238978442505695369677078544996996794686445490598793163688923009879312";
 
 sub Range {
     my $arrayref = shift;
@@ -194,7 +194,7 @@ sub SomeOf {
 sub Factorial {
     my $n = shift;
     return undef unless defined $n;
-    my $result = 1;
+    my $result = Math::BigFloat->new(1);
     unless ( $n >= 0 && $n == int($n) ) {
         return undef;
     }
@@ -617,27 +617,32 @@ sub Determinant {
 sub CircleArea {
     my $radius = shift;
     return undef unless defined $radius;
-    my $area = $PI * ( $radius**2 );
+		my $area = Math::BigFloat->new( 1 );
+    $area = $PI * ( $radius**2 );
     return $area;
 }
 
 sub Circumference {
     my $diameter = shift;
     return undef unless defined $diameter;
-    return $PI * $diameter;
+		my $circumference = Math::BigFloat->new( 1 );
+		$circumference = $PI * $diameter;
+    return $circumference;
 }
 
 sub SphereVolume {
     my $radius = shift;
     return undef unless defined $radius;
-    my $volume = ( 4 / 3 ) * $PI * ( $radius**3 );
+		my $volume = Math::BigFloat->new( 1 );
+    $volume = ( 4 / 3 ) * $PI * ( $radius**3 );
     return $volume;
 }
 
 sub SphereSurface {
     my $radius = shift;
     return undef unless defined $radius;
-    my $surface = 4 * $PI * ( $radius**2 );
+		my $surface = Math::BigFloat->new( 1 );
+    $surface = 4 * $PI * ( $radius**2 );
     return $surface;
 }
 
@@ -650,7 +655,9 @@ sub RuleOf72 {
 sub CylinderVolume {
     my ( $radius, $height ) = @_;
     return undef unless defined $radius && defined $height;
-    return $PI * ( $radius**2 ) * $height;
+		my $volume = Math::BigFloat->new( 1 );
+    $volume = $PI * ( $radius**2 ) * $height;
+		return $volume;
 }
 
 sub ConeVolume {
@@ -662,13 +669,17 @@ sub ConeVolume {
 sub deg2rad {
     my $degrees = shift;
     return undef unless defined $degrees;
-    return ( $degrees / 180 ) * $PI;
+		my $radians = Math::BigFloat->new( 1 );
+		$radians = ( $degrees / 180 ) * $PI;
+		return $radians;
 }
 
 sub rad2deg {
     my $radians = shift;
     return undef unless defined $radians;
-    return ( $radians / $PI ) * 180;
+		my $degrees = Math::BigFloat->new( 1 );
+    $degrees = ( $radians / $PI ) * 180;
+		return $degrees;
 }
 
 sub C2F {
