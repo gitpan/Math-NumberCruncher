@@ -1,0 +1,6 @@
+Revision history for Perl extension Math::NumberCruncher.
+
+0.01  Wed Aug 30 14:41:52 2000
+	- original version; created by h2xs 1.20 with options
+		-XA -n Math::NumberCruncher
+
