@@ -1,7 +1,7 @@
 #---------------------------------------------------------------------------#
 # Math::NumberCruncher
 #       Date Written:   30-Aug-2000 02:41:52 PM
-#       Last Modified:  20-Nov-2001 02:27:39 PM
+#       Last Modified:  17-Dec-2001 09:54:11 AM
 #       Author:    Kurt Kincaid
 #       Copyright (c) 2001, Kurt Kincaid
 #           All Rights Reserved
@@ -18,11 +18,11 @@ use constant epsilon => 1E-10;
 use Math::BigFloat;
 use strict;
 no strict 'refs';
+use vars qw( $PI $_e_ $_g_ $VERSION @ISA @EXPORT_OK @array );
 
-our ( $PI, $_e_, $_g_, $VERSION, @ISA, @EXPORT_OK );
-@ISA       = qw(Exporter);
-@EXPORT_OK = qw($PI $_e_ $_g_ $VERSION);
-$VERSION   = '4.0';
+@ISA       = qw( Exporter );
+@EXPORT_OK = qw( $PI $_e_ $_g_ $VERSION );
+$VERSION   = '4.02';
 
 $PI  = new Math::BigFloat "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458700660631558817488152092096282925409171536436789259036001133053054882046652138414695194151160943305727036575959195309218611738193261179310511854807446237996274956735188575272489122793818301194758";
 $_e_ = new Math::BigFloat "2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642742746639193200305992181741359662904357290033429526059563073813232862794349076323382988075319525101901157383418793070215408914993488416750924476146066808226480016847741185374234544243710753907774499206955170276183860626133138458300075204493382656029760673711320070932870912744374704723069697720931014169283681902551510865746377211125238978442505695369677078544996996794686445490598793163688923009879312";
@@ -143,8 +143,7 @@ sub Correlation {
         $sum2_sqrd += $_**2;
     }
     return ( @$array1ref**2 ) * Covariance( $array1ref, $array2ref ) /
-      sqrt( ( ( @$array1ref * $sum1_sqrd ) - ( $sum1**2 ) ) *
-      ( ( @$array1ref * $sum2_sqrd ) - ( $sum2**2 ) ) );
+      SqrRoot( abs( ( ( ( @$array1ref * $sum1_sqrd ) - ( $sum1**2 ) ) * ( ( @$array1ref * $sum2_sqrd ) - ( $sum2**2 ) ) ) ) );
 }
 
 sub BestFit {
@@ -175,7 +174,7 @@ sub Distance {    # Distance( $x1, $y1, $x2, $y2 );
     my @p = @_;
     return undef unless @p >= 3;
     my $d = @p / 2;
-    return sqrt( ( $_[0] - $_[2] )**2 + ( $_[1] - $_[3] )**2 ) if $d == 2;
+    return SqrRoot( abs( ( $_[0] - $_[2] )**2 + ( $_[1] - $_[3] )**2 ) ) if $d == 2;
     my $S = 0;
     my @p0 = splice @p, 0, $d;
 
@@ -183,7 +182,7 @@ sub Distance {    # Distance( $x1, $y1, $x2, $y2 );
         my $di = $p0[$i] - $p[$i];
         $S += $di * $di;
     }
-    return sqrt($S);
+    return SqrRoot( abs( $S ) );
 }
 
 sub ManhattanDistance {
@@ -220,9 +219,9 @@ sub NoneOf {
         my $self = shift;
     }
     my $result = 1;
-    my @array = @_;
-    while ( @array ) {
-        $result *= ( 1 - shift @array );
+    @array = @_;
+    foreach my $item ( @array ) {
+        $result *= ( 1 - $item );
     }
     return $result;
 }
@@ -231,9 +230,9 @@ sub SomeOf {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my @array = @_;
+    @array = @_;
     return undef unless @array >= 2;
-    return 1 - NoneOf( \@array );
+    return 1 - NoneOf( @array );
 }
 
 sub Factorial {
@@ -408,15 +407,13 @@ sub Difference {
 }
 
 sub GaussianRand {
-    my ( $u1, $u2 );
-    my $w;
-    my ( $g1, $g2 );
-    while ( $w >= 1 ) {
+    my ( $u1, $u2, $w, $g1, $g2 );
+    do {
         $u1 = 2 * rand() - 1;
         $u2 = 2 * rand() - 1;
         $w  = $u1 * $u1 + $u2 * $u2;
-    }
-    $w  = sqrt( ( -2 * log($w) ) / $w );
+    } while ( $w >= 1 );
+    $w  = sqrt( abs( ( -2 * log($w) ) / $w ) );
     $g2 = $u1 * $w;
     $g1 = $u2 * $w;
     return wantarray ? ( $g1, $g2 ) : $g1;
@@ -455,7 +452,7 @@ sub GaussianDist {
     }
     use constant two_pi_sqrt_inverse => 1 / sqrt( 8 * atan2( 1, 1 ) );
     my ( $x, $mean, $variance ) = @_;
-    return two_pi_sqrt_inverse * exp( -( $x - $mean )**2 / ( 2 * $variance ) ) / sqrt $variance;
+    return two_pi_sqrt_inverse * exp( -( $x - $mean )**2 / ( 2 * $variance ) ) / SqrRoot( abs( $variance ) );
 }
 
 sub StandardDeviation {
@@ -465,7 +462,7 @@ sub StandardDeviation {
     }
     return undef unless defined $arrayref && @$arrayref > 0;
     my $mean = Mean($arrayref);
-    return sqrt( Mean( [ map $_**2, @$arrayref ] ) - ( $mean**2 ) );
+    return SqrRoot( abs( Mean( [ map $_**2, @$arrayref ] ) - ( $mean**2 ) ) );
 }
 
 sub Variance {
@@ -474,7 +471,7 @@ sub Variance {
         $arrayref = $self;
     }
     return undef unless defined $arrayref && @$arrayref > 0;
-    return StandardDeviation($arrayref)**2;
+    return StandardDeviation( $arrayref ) ** 2;
 }
 
 sub StandardScores {    # number of StdDevs above the mean for each element
@@ -518,14 +515,15 @@ sub EMC2 {
     } else {
         $C = 186282.056;    # miles per second
     }
-    my $result;
-    $var = lc $var;
-    if ( $var =~ /^m(.*)$/ ) {
+    my $result = Math::BigFloat->new();
+    my $sqrd = Math::BigFloat->new( $C );
+    $sqrd **= 2;
+    if ( $var =~ /^m(.*)$/i ) {
         my $val = $1;
-        $result = $val * $C**2;
-    } elsif ( $var =~ /^e(.*)$/ ) {
+        $result = $val * $sqrd;
+    } elsif ( $var =~ /^e(.*)$/i ) {
         my $val = new Math::BigFloat $1;
-        $result = $val->fdiv( $C**2 );
+        $result = $val->fdiv( $sqrd );
     } else {
         return undef;
     }
@@ -586,7 +584,7 @@ sub TriangleHeron {
         return undef;
     }
     my $s = ( $a + $b + $c ) / 2;
-    return sqrt( $s * ( $s - $a ) * ( $s - $b ) * ( $s - $c ) );
+    return SqrRoot( abs( $s * ( $s - $a ) * ( $s - $b ) * ( $s - $c ) ) );
 }
 
 sub PolygonPerimeter {
@@ -706,7 +704,7 @@ sub CircleArea {
     }
     my $radius = shift;
     return undef unless defined $radius;
-	my $area = Math::BigFloat->new( 1 );
+    my $area = Math::BigFloat->new( 1 );
     $area = $PI * ( $radius**2 );
     return $area;
 }
@@ -717,8 +715,8 @@ sub Circumference {
     }
     my $diameter = shift;
     return undef unless defined $diameter;
-	my $circumference = Math::BigFloat->new( 1 );
-	$circumference = $PI * $diameter;
+    my $circumference = Math::BigFloat->new( 1 );
+    $circumference = $PI * $diameter;
     return $circumference;
 }
 
@@ -728,7 +726,7 @@ sub SphereVolume {
     }
     my $radius = shift;
     return undef unless defined $radius;
-	my $volume = Math::BigFloat->new( 1 );
+    my $volume = Math::BigFloat->new( 1 );
     $volume = ( 4 / 3 ) * $PI * ( $radius**3 );
     return $volume;
 }
@@ -739,7 +737,7 @@ sub SphereSurface {
     }
     my $radius = shift;
     return undef unless defined $radius;
-	my $surface = Math::BigFloat->new( 1 );
+    my $surface = Math::BigFloat->new( 1 );
     $surface = 4 * $PI * ( $radius**2 );
     return $surface;
 }
@@ -750,7 +748,9 @@ sub RuleOf72 {
     }
     my $pct = shift;
     return undef unless defined $pct;
-    return 72 / $pct;
+    my $num = Math::BigFloat->new( 72 );
+    $num /= $pct;
+    return $num;
 }
 
 sub CylinderVolume {
@@ -770,7 +770,11 @@ sub ConeVolume {
     }
     my ( $lowerbase, $height ) = @_;
     return undef unless defined $lowerbase && defined $height;
-    return ( 1 / 3 ) * $lowerbase * $height;
+    my $num = Math::BigFloat->new( 1 );
+    $num *= ( $lowerbase * $height );
+    $num /= 3;
+    return $num;
+#    return ( 1 / 3 ) * $lowerbase * $height;
 }
 
 sub deg2rad {
@@ -799,7 +803,7 @@ sub C2F {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $degrees = shift;
+    my $degrees = Math::BigFloat->new( shift );
     return undef unless defined $degrees;
     return $degrees * 1.8 + 32;
 }
@@ -808,7 +812,7 @@ sub F2C {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $degrees = shift;
+    my $degrees = Math::BigFloat->new( shift );
     return undef unless defined $degrees;
     return ( $degrees - 32 ) / 1.8;
 }
@@ -817,7 +821,7 @@ sub cm2in {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $cm = shift;
+    my $cm = Math::BigFloat->new( shift );
     return undef unless defined $cm;
     return $cm * 0.3937007874;
 }
@@ -826,7 +830,7 @@ sub in2cm {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $inches = shift;
+    my $inches = Math::BigFloat->new( shift );
     return undef unless defined $inches;
     return $inches * 2.54;
 }
@@ -835,8 +839,9 @@ sub m2ft {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $meters = shift;
-    return undef unless defined $meters;
+    my $temp = shift;
+    my $meters = Math::BigFloat->new( $temp );
+    return undef unless defined $temp;
     return $meters * 3.280839895;
 }
 
@@ -844,8 +849,9 @@ sub ft2m {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $feet = shift;
-    return undef unless defined $feet;
+    my $temp = shift;
+    my $feet = Math::BigFloat->new( $temp );
+    return undef unless defined $temp;
     return $feet * 0.3048;
 }
 
@@ -853,8 +859,9 @@ sub kg2lb {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $kg = shift;
-    return undef unless defined $kg;
+    my $temp = shift;
+    my $kg = Math::BigFloat->new( $temp );
+    return undef unless defined $temp;
     return $kg * 2.204622622;
 }
 
@@ -862,8 +869,9 @@ sub lb2kg {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $lb = shift;
-    return undef unless defined $lb;
+    my $temp = shift;
+    my $lb = Math::BigFloat->new( $temp );
+    return undef unless defined $temp;
     return $lb * 0.45359237;
 }
 
@@ -873,15 +881,18 @@ sub RelativeStride {
     }
     my ( $stride_length, $leg_length ) = @_;
     return undef unless defined $stride_length && defined $leg_length;
-    return $stride_length / $leg_length;
+    my $rs = Math::BigFloat->new( $stride_length );
+    $rs /= $leg_length;
+    return $rs;
 }
 
 sub RelativeStride_2 {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $DS = shift;
-    return undef unless defined $DS;
+    my $temp = shift;
+    my $DS = Math::BigFloat->new( $temp );
+    return undef unless defined $temp;
     return 1.1 * $DS + 1;
 }
 
@@ -889,8 +900,9 @@ sub DimensionlessSpeed {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $RSL = shift;
-    return undef unless defined $RSL;
+    my $temp = shift;
+    my $RSL = Math::BigFloat->new( $temp );
+    return undef unless defined $temp;
     return ( $RSL - 1 ) / 1.1;
 }
 
@@ -900,16 +912,21 @@ sub DimensionlessSpeed_2 {
     }
     my ( $speed, $legLength ) = @_;
     return undef unless defined $speed && defined $legLength;
-    return $speed / sqrt( $legLength * 9.80665 );
+    my $DS = Math::BigFloat->new();
+    $DS = $speed / SqrRoot( abs( $legLength * 9.80665 ) );
+    return $DS;
 }
 
 sub ActualSpeed {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my ( $legLength, $dimensionlessSpeed ) = @_;
-    return undef unless defined $legLength && defined $dimensionlessSpeed;
-    return ( sqrt( $legLength * 9.80665 ) ) * $dimensionlessSpeed;
+    unless ( scalar( @_ ) == 2 ) { return undef }
+    my $legLength = Math::BigFloat->new( shift );
+    my $dimensionlessSpeed = Math::BigFloat->new( shift );
+    my $AS = Math::BigFloat->new();
+    $AS = $dimensionlessSpeed * SqrRoot( abs( $legLength * 9.80665 ) );
+    return $AS;
 }
 
 sub Eccentricity {
@@ -917,7 +934,8 @@ sub Eccentricity {
         my $self = shift;
     }
     my ( $a, $b ) = @_;
-    return SqrRoot( $a**2 - $b**2 ) / $a;
+    unless ( $a && $b ) { return undef }
+    return SqrRoot( abs( $a**2 - $b**2 ) ) / $a;
 }
 
 sub LatusRectum {
@@ -925,6 +943,7 @@ sub LatusRectum {
         my $self = shift;
     }
     my ( $a, $b ) = @_;
+    unless ( $a && $b ) { return undef }
     return 2 * $b**2 / $a;
 }
 
@@ -933,6 +952,7 @@ sub EllipseArea {
         my $self = shift;
     }
     my ( $a, $b ) = @_;
+    unless ( $a && $b ) { return undef }
     my $area = Math::BigFloat->new();
     $area = $PI * $a * $b;
     return $area;
@@ -942,13 +962,13 @@ sub OrbitalVelocity {
     if ( ref $_[0] ) {
         my $self = shift;
     }
-    my $r = Math::BigFloat->new();
-    my $a = Math::BigFloat->new();
-    my $M = Math::BigFloat->new();
-    my $iterations;
-    ( $r, $a, $M, $iterations ) = @_;
-    my $v = Math::BigFloat->new();
-    $v = SqrRoot( (2 * $_g_ * $M * ( (1/$r) - (1/(2*$a)) )), $iterations || 49 );
+    my $r = Math::BigFloat->new( shift );
+    my $a = Math::BigFloat->new( shift );
+    my $M = Math::BigFloat->new( shift );
+    my $iterations = 49 || shift;
+    my $num = 2 * $_g_ * $M * ( (1/$r) - (1/(2*$a)) );
+    my $x = Math::BigFloat->bstr( $num );
+    my $v = SqrRoot( $x, $iterations );
     return $v / 1000000;
 }
 
@@ -979,7 +999,9 @@ sub asin {
     }
     my $sine = shift;
     return undef unless ( $sine >= -1 && $sine <= 1 );
-    return atan2( $sine, sqrt( 1-$sine * $sine ) );
+    my $num = SqrRoot( abs( 1-$sine * $sine ) );
+    my $x = Math::BigFloat->bstr( $num );
+    return atan2( $sine, $x );
 }
 
 sub csc {
@@ -994,7 +1016,9 @@ sub acos {
         my $self = shift;
     }
     my $num = shift;
-    return atan2( sqrt(1 - $num * $num), $num );
+    my $temp = SqrRoot( abs(1 - $num * $num) );
+    my $x = Math::BigFloat->bstr( $temp );
+    return atan2( $x, $num );
 }
 
 sub sec {
@@ -1053,7 +1077,9 @@ sub atan {
         my $self = shift;
     }
     my $num = shift;
-    return acos( 1 / sqrt( $num ** 2 + 1 ) );
+    my $temp = SqrRoot( abs( $num ** 2 + 1 ) );
+    my $x = Math::BigFloat->bstr( $temp );
+    return acos( 1 / $x );
 }
 
 sub acot {
@@ -1068,7 +1094,18 @@ sub asec {
         my $self = shift;
     }
     my $num = shift;
-    return atan( sqrt( $num ** 2 - 1 ) );
+    my $temp = SqrRoot( abs( $num ** 2 - 1 ) );
+    my $x = Math::BigFloat->bstr( $temp );
+    return atan( $x );
+}
+
+sub Commas {
+    if ( ref $_[0] ) {
+        my $self = shift;
+    }
+    local $_ = shift;
+    1 while s/^(-?\d+)(\d{3})/$1,$2/;
+    return $_;
 }
 
 1;
@@ -1148,7 +1185,7 @@ Math::NumberCruncher::ShuffleArray(\@array);
 
 $gaussianRand = Math::NumberCruncher::GaussianRand();
 
-$prob = Math::NumberCruncher::Choose($n,$k);
+$ways = Math::NumberCruncher::Choose($n,$k);
 
 $binomial = Math::NumberCruncher::Binomial($attempts,$successes,$probability);
 
@@ -1216,6 +1253,10 @@ $cm = Math::NumberCruncher::in2cm( $inches );
 
 $inches = Math::NumberCruncher::cm2in( $cm );
 
+$ft = Math::NumberCruncher::m2ft( $m );
+
+$m = Math::NumberCruncher::ft2m( $ft );
+
 $lb = Math::NumberCruncher::kg2lb( $kg );
 
 $kg = Math::NumberCruncher::lb2kg( $lb );
@@ -1263,6 +1304,8 @@ $versine = Math::NumberCruncher::vers( $x );
 $coversine = Math::NumberCruncher::covers( $x );
 
 $haversine = Math::NumberCruncher::hav( $x );
+
+$grouped = Math::NumberCruncher::Commas( $number );
 
 =head1 DESCRIPTION
 
@@ -1374,9 +1417,9 @@ Returns an array of the symmetric difference of the two arrays. For example, in 
 
 Returns one or two floating point numbers based on the Gaussian Distribution, based upon whether the call wants an array or a scalar value.
 
-=head2 $probability = B<Math::NumberCruncher::Choose>($n,$k);
+=head2 $ways = B<Math::NumberCruncher::Choose>($n,$k);
 
-Returns the probability of $k successes in $n tries.
+The number of ways to choose $k elements from a set of $n elements, when the order of selection is irrelevant.
 
 =head2 $binomial = B<Math::NumberCruncher::Binomial>($n,$k,$p);
 
@@ -1494,6 +1537,14 @@ Converts inches to centimeters.
 
 Converts centimeters to inches.
 
+=head2 $ft = B<Math::NumberCruncher::m2ft>( $m );
+
+Converts meters to feet.
+
+=head2 $m = B<Math::NumberCruncher::ft2m>( $ft );
+
+Converts feet to meters.
+
 =head2 $lb = B<Math::NumberCruncher::kg2lb>( $kg );
 
 Converts kilograms to pounds.
@@ -1593,6 +1644,10 @@ Calculates the coversine.
 =head2 $haversine = B<Math::NumberCruncher::hav>( $x );
 
 Calculates the haversine.
+
+=head2 $grouped = B<Math::NumberCruncher::Commas>( $number );
+
+Performs digit grouping, making large number more visually pleasing.
 
 =head1 AUTHOR
 
