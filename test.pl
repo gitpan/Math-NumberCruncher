@@ -10,9 +10,25 @@ END {
 }
 
 use Math::NumberCruncher;
-use Math::BigInt;
-$tests = 92;
+use Math::BigFloat;
+$tests = 99;
 print ("Testing Math::NumberCruncher v$Math::NumberCruncher::VERSION\n\n");
+
+print <<END;
+##########################################
+#               IMPORTANT                #
+##########################################
+Significant improvements have been made to 
+Math::NumberCruncher starting with v5.00.
+Every attempt was made to maintain backward
+compatibility, but in some cases, this wasn't
+possible. Be certain to test scripts written
+using versions < 5.00 very thoroughly.
+
+(sleeping 3 seconds)
+END
+sleep(3);
+
 $loaded = 1;
 $count  = 1;
 Testing();
@@ -77,14 +93,14 @@ Testing();
 
 # BestFit()
 ( $slope, $y_intercept ) = $ref->BestFit( \@array1, \@array2 );
-if ( $slope !~ /^0.976588628762542/ || $y_intercept !~ /^53.6900780379041/ ) {
+if ( $slope !~ /^0.976588628762541/ || $y_intercept !~ /^53.6900780379041/ ) {
     $Failed{9} = "BestFit()";
 }
 Testing();
 
 # Distance()
 $dist = $ref->Distance( 1, 2, 3, 8, 9, 10 );
-if ( $dist !~ /^12.1243556529821410546921243905411065685/ ) {
+if ( $dist !~ /^12.12435565298214105469/ ) {
     $Failed{10} = "Distance()";
 }
 Testing();
@@ -234,13 +250,14 @@ if ( $ref->Binomial( '100','45','0.5' ) !~ /^0.0484742966264307/ ) {
 Testing();
 
 # GaussianDist()
-if ( $ref->GaussianDist( 5, 3.5, 0.5 ) !~ /^0.05946514461181475289023957011/ ) {
+if ( $ref->GaussianDist( 5, 3.5, 0.5 ) !~ /^0.05946514461181475289/ ) {
     $Failed{29} = "GaussianDist()";
 }
 Testing();
 
 # StandardDeviation()
-if ( $ref->StandardDeviation( \@array2 ) !~ /^86.8907359849138347715941065265/ ) {
+$sd = $ref->StandardDeviation( \@array2 );
+if ( $sd !~ /^86.89073598491383477159/ ) {
     $Failed{30} = "StandardDeviation()";
 }
 Testing();
@@ -250,7 +267,6 @@ $error = Math::BigFloat->new( 0.000000001 );
 @a = ( 5, 5, 7, 8, 8, 8, 8, 8, 9, 10 );
 $variance = $ref->Variance( \@a );
 $diff = Math::BigFloat->new( $variance - 2.2400000000000099999999999999999999 );
-#$diff = $variance - 2.2400000000000099999999999999999999;
 $diff->babs();
 if ( $diff->bcmp( $error ) > 0 ) {
     $Failed{31} = "Variance()";
@@ -260,10 +276,10 @@ Testing();
 # StandardScores()
 @a = ( 3, 4, 4, 5 );
 @temp = $ref->StandardScores( \@a );
-if ( $temp[0] !~ /^-1.41421356237309504880168872420969807857/ ||
+if ( $temp[0] !~ /^-1.41421356237309504880/ ||
      $temp[1] ne "0" ||
      $temp[2] ne "0" ||
-     $temp[3] !~ /^1.41421356237309504880168872420969807857/ ) {
+     $temp[3] !~ /^1.41421356237309504880/ ) {
          $Failed{32} = "StandardScores()";
 }
 Testing();
@@ -275,7 +291,9 @@ if ( $ref->SignSignificance( 100, 33, 0.3333 ) !~ /^5.73830638060931/ ) {
 Testing();
 
 # EMC2()
-if ( $ref->EMC2( "m0.01", 1 ) !~ /^347010043.87587136/ ) {
+$emc = $ref->EMC2( "m0.01", "m" );
+if ( $emc !~ /^347010043.87587136/ ) {
+    print ("\nEMC2(): $emc\n");
     $Failed{34} = "EMC2()";
 }
 Testing();
@@ -293,14 +311,14 @@ if ( $ref->Predict( 1, 3, 5 ) != 8 ) {
 Testing();
 
 # TriangleHeron
-if ( $ref->TriangleHeron( 5, 5, 5 ) !~ /^10.8253175473054830845465396344117022933/ ) {
+if ( $ref->TriangleHeron( 5, 5, 5 ) !~ /^10.82531754730548308455/ ) {
     $Failed{37} = "TriangleHeron()";
 }
 Testing();
 
 # PolygonPerimeter()
-if ( $ref->PolygonPerimeter( 1, 1, 5, 5, 7, 3, 8, 0 ) !~ /^18.718626846272424868817469510739397397985/ ) {
-    print $ref->PolygonPerimeter( 1, 1, 5, 5, 7, 3, 8, 0 ), "\n";
+$pp = $ref->PolygonPerimeter( 1, 1, 5, 5, 7, 3, 8, 0 );
+if ( $pp !~ /^18.71862684627242486882/ ) {
     $Failed{38} = "PolygonPerimeter()";
 }
 Testing();
@@ -339,60 +357,72 @@ Testing();
 
 # CircleArea()
 $area = $ref->CircleArea( 5 );
-if ( $area !~ /^78.5398163397448309615660845819875721/ ) {
+if ( $area !~ /^78.53981633974483096157/ ) {
+    print ("\nArea: $area\n");
     $Failed{44} = "CircleArea()";
 }
 Testing();
 
 # Circumference()
 $circ = $ref->Circumference( 5 );
-if ( $circ !~ /^15.707963267948966192313216916397514420985/ ) {
+if ( $circ !~ /^15.70796326794896619231/ ) {
+    print ("\nCircumference: $circ\n");
     $Failed{45} = "Circumference()";
 }
 Testing();
 
 # SphereVolume()
 $vol = $ref->SphereVolume( 3 );
-if ( $vol !~ /^113.09733552923227384131633871667064219/ ) {
+if ( $vol !~ /^113.09733552923227384132/ ) {
+    print ("\nSphereVolume: $vol\n");
     $Failed{46} = "SphereVolume()";
 }
 Testing();
 
 # SphereSurface()
 $surf = $ref->SphereSurface( 3 );
-if ( $surf !~ /^113.09733552923255658465516179806210/ ) {
+if ( $surf !~ /^113.09733552923255658466/ ) {
+    print ("\nSphereSurface: $surf\n");
     $Failed{47} = "SphereSurface()";
 }
 Testing();
 
 # RuleOf72()
-if ( $ref->RuleOf72( 7 ) !~ /^10.28571428571428571428571428571428571429/ ) {
+my $rule = $ref->RuleOf72( 7 );
+if ( $rule !~ /^10.28571428571428571429/ ) {
+    print ("\nRuleOf72: $rule\n");
     $Failed{48} = "RuleOf72()";
 }
 Testing();
 
 # CylinderVolume()
 $vol = $ref->CylinderVolume( 3, 5 );
-if ( $vol !~ /^141.3716694115406957308189522475/ ) {
+if ( $vol !~ /^141.37166941154069573082/ ) {
+    print ("\nCylinderVolume: $vol\n");
     $Failed{49} = "CylinderVolume()";
 }
 Testing();
 
 # ConeVolume()
 $vol = $ref->ConeVolume( 4, 11 );
-if ( $vol !~ /^14.66666666666666666666666666/ ) {
+if ( $vol !~ /^14.6666666666/ ) {
+    print ("\nConeVolume: $vol\n");
     $Failed{50} = "ConeVolume()";
 }
 Testing();
 
 # deg2rad()
-if ( $ref->deg2rad( 5 ) !~ /^0.08726646259971654865935461819761371261/ ) {
+my $conv = $ref->deg2rad( 5 );
+if ( $conv !~ /^0.0872664625997/ ) {
+    print ("\ndeg2rad: $conv\n");
     $Failed{51} = "deg2rad()";
 }
 Testing();
 
 # rad2deg()
-if ( $ref->rad2deg( 5 ) !~ /^286.4788975654116043839907740705258516621/ ) {
+$conv = $ref->rad2deg( 5 );
+if ( $conv !~ /^286.47889756541160438399/ ) {
+    print ("\nrad2deg: $conv\n");
     $Failed{52} = "rad2deg()";
 }
 Testing();
@@ -471,13 +501,14 @@ Testing();
 
 # ActualSpeed()
 if ( $ref->ActualSpeed( 4, 0.681818181818181 ) !~ /^4.2703051645458622507/ ) {
-    print $ref->ActualSpeed( 4, 0.681818181818181 ), "\n";
     $Failed{65} = "ActualSpeed()";
 }
 Testing();
 
 # Eccentricity()
-if ( $ref->Eccentricity( 4, 6 ) !~ /^1.11803398874989484/ ) {
+$ecc = $ref->Eccentricity( 4, 6 );
+if ( $ecc !~ /^1.11803398874989484/ ) {
+    print ("\nEccentricity: $ecc\n");
     $Failed{66} = "Eccentricity()";
 }
 Testing();
@@ -489,19 +520,23 @@ if ( $ref->LatusRectum( 4, 5 ) != 12.5 ) {
 Testing();
 
 # EllipseArea()
-if ( $ref->EllipseArea( 4, 5 ) !~ /^62.831853071795864769252867/ ) {
+my $area = $ref->EllipseArea( 4, 5 );
+if ( $area !~ /^62.83185307179586476925/ ) {
+    print ("\nEllipseArea: $area\n");
     $Failed{68} = "EllipseArea()";
 }
 Testing();
 
 # OrbitalVelocity()
-if ( $ref->OrbitalVelocity( 37000, 978990, 129999999999999 ) !~ /^0.000000678095334543935/ ) {
+$ov = $ref->OrbitalVelocity( 37000, 978990, 129999999999999 );
+if ( $ov !~ /^0.00000067809533454393/ ) {
+    print ("\nOrvitalVelocity(): $ov\n");
     $Failed{69} = "OrbitalVelocity()";
 }
 Testing();
 
 # SqrRoot()
-if ( $ref->SqrRoot( 111 ) !~ /^10.53565375285273884840140/ ) {
+if ( $ref->SqrRoot( 111 ) !~ /^10.53565375285273884840/ ) {
     $Failed{70} = "SqrRoot()";
 }
 Testing();
@@ -519,19 +554,23 @@ if ( $ref->acos( 0.15 ) !~ /^1.42022805401821/ ) {
 Testing();
 
 # atan()
-if ( $ref->atan( 0.15 ) !~ /^0.1488899476094966192313/ ) {
+my $atan = $ref->atan( 0.15 );
+if ( $atan !~ /^0.14888994760949725059/ ) {
+    print ("\natan: $atan\n");
     $Failed{73} = "atan()";
 }
 Testing();
 
 # acot()
-if ( $ref->acot( 0.15 ) !~ /^1.421906379185399619231/ ) {
+if ( $ref->acot( 0.15 ) !~ /^1.42190637918539936864/ ) {
     $Failed{74} = "acot()";
 }
 Testing();
 
 # asec()
-if ( $ref->asec( 0.15 ) !~ /^0.779709039377393619/ ) {
+my $asec = $ref->asec( 2.1 );
+if ( $asec !~ /^1.07447896466943/ ) {
+    print ("\nasec: $asec\n");
     $Failed{75} = "asec()";
 }
 Testing();
@@ -544,21 +583,24 @@ Testing();
 
 # csc()
 my $csc = $ref->csc( 0.15 );
-if ( $csc !~ /^6.69173244771824506/ ) {
+if ( $csc !~ /^6.6917324477182/ ) {
+    print ("\ncsc(): $csc\n");
     $Failed{77} = "csc()";
 }
 Testing();
 
 # exsec()
 my $exsec = $ref->exsec( 0.15 );
-if ( $exsec !~ /^0.01135644267366438/ ) {
+if ( $exsec !~ /^0.011356442673664/ ) {
+    print ("\nexsec(): $exsec\n");
     $Failed{78} = "exsec()";
 }
 Testing();
 
 # tan()
 my $tan = $ref->tan( 30 );
-if ( $tan !~ /^-6.405331196646279252/ ) {
+if ( $tan !~ /^-6.40533119664627/ ) {
+    print ("\ntan(): $tan\n");
     $Failed{79} = "tan()";
 }
 Testing();
@@ -570,19 +612,25 @@ if ( $ref->cot( 30 ) !~ /^-0.156119952161659/ ) {
 Testing();
 
 # vers()
-if ( $ref->vers( 30 ) !~ /^0.845748550112416/ ) {
+$vers = $ref->vers( 30 );
+if ( $vers !~ /^0.845748550112415/ ) {
+    print ("\nvers(): $vers\n");
     $Failed{81} = "vers()";
 }
 Testing();
 
 # covers()
-if ( $ref->covers( 30 ) !~ /^1.98803162409286/ ) {
+$covers = $ref->covers( 30 );
+if ( $covers !~ /^1.98803162409286/ ) {
+    print ("\ncovers: $covers\n");
     $Failed{82} = "covers()";
 }
 Testing();
 
 # hav()
-if ( $ref->hav( 30 ) !~ /^0.422874275056208/ ) {
+$hav = $ref->hav( 5 );
+if ( $hav !~ /^0.358168907268386867/ ) {
+    print ("\nhav(): $hav\n");
     $Failed{83} = "hav()";
 }
 Testing();
@@ -594,7 +642,7 @@ if ( $ref->Commas( 1000000 ) ne "1,000,000" ) {
 Testing();
 
 # Root()
-if ( $ref->Root( 55, 3 ) !~ /^3.8029524607613916185467/ ) {
+if ( $ref->Root( 55, 3 ) !~ /^3.80295246076139161855/ ) {
     $Failed{85} = "Root()";
 }
 Testing();
@@ -627,15 +675,16 @@ unless ( $a == 24 && $b == 70 && $c == 74 ) {
 Testing();
 
 # PythagTriplesSeq()
-if ( $ref->PythagTriplesSeq( 25, 53 ) !~ /^58.6003412959344461188613527037/ ) {
+if ( $ref->PythagTriplesSeq( 25, 53 ) !~ /^58.60034129593444611886/ ) {
     $Failed{90} = "PythagTriplesSeq()";
 }
 Testing();
 
 # acsc ()
-my $acsc = $ref->acsc( 0.15 );
-if ( $acsc !~ /^0.791087287417503/ ) {
-    $Failed{91};
+my $acsc = $ref->acsc( 5 );
+if ( $acsc !~ /^0.20135792079033/ ) {
+    print ("\nacsc: $acsc\n");
+    $Failed{91} = "acsc()";
 }
 Testing();
 
@@ -644,6 +693,62 @@ Testing();
 unless ( $nums[0] == 1 && $nums[1] == 3 && $nums[2] == 5 && $nums[3] == 10
          && $nums[4] == 20 ) {
     $Failed{92} = "SIS()";
+}
+Testing();
+
+# sin()
+$sin = $ref->sin( 15 );
+if ( $sin !~ /^0.65028784015711686580/ ) {
+    print ("\nsin(): $sin\n");
+    $Failed{93} = "sin()";
+}
+Testing();
+
+# cos()
+$cos = $ref->cos( 15 );
+if ( $cos !~ /^-0.75968791285882127378/ ) {
+    print ("\ncos: $cos\n");
+    $Failed{94} = "cos()";
+}
+Testing();
+
+# Inverse()
+$inv = $ref->Inverse( 25 );
+if ( $inv !~ /^0.04000000000000000000/ ) {
+    print ("\nInverse(): $inv\n");
+    $Failed{95} = "Inverse()";
+}
+Testing();
+
+# km2miles()
+$conv = $ref->km2miles( 10 );
+if ( $conv !~ /^6.21371192200000000000/ ) {
+    print ("\nkm2miles(): $conv\n");
+    $Failed{96} = "km2miles()";
+}
+Testing();
+
+# miles2km()
+$conv = $ref->miles2km( 10 );
+if ( $conv !~ /^16.09344000096690000000/ ) {
+    print ("\nmiles2km(): $conv\n");
+    $Failed{97} = "miles2km()";
+}
+Testing();
+
+# CONSTANT()
+$apery = $ref->CONSTANT( '_apery_', 15 );
+if ( $apery !~ /^1.20205690315/ ) {
+    print ("\nCONSTANT( '_apery_' ): $apery\n");
+    $Failed{98} = "CONSTANT()";
+}
+Testing();
+
+# Bernoulli()
+( $x, $y ) = $ref->Bernoulli( 2 );
+unless ( $x == 1 and $y == 6 ) {
+    print ("\nBernoulli( 2 ): $x, $y\n");
+    $Failed{99} = "Bernoulli()";
 }
 Testing();
 

@@ -1,5 +1,31 @@
 Revision history for Perl extension Math::NumberCruncher.
 
+5.00 05-Mar-2002 12:29:30 PM
+    - Added the following:
+        sin()
+        cos()
+        sqrt()
+        log()
+        exp()
+        PICONST()
+        Inverse()
+        km2miles()
+        miles2km()
+        CONSTANT()
+        Bernoulli()
+    - Made the following functions available for export: log(), exp(),
+      sqrt(), sin(), cos(), asin(), acos(), atan(), sec(), asec(),
+      csc(), acsc(), exsec(), cot(), acot(), vers(), covers(), hav().
+    - sqrt(), sin(), cos(), log(), and exp() were created and/or modified
+      to serve as drop-in replacements for their respective built-in
+      functions. Usage is the same, with the option of specifying the number
+      of desired decimal places.
+    - Completely overhauled the bulk of the included functions to allow
+      for the user to specify the number of desired decimal places. In 
+      some cases, it was not possible to maintain backwards compatability.
+      Please be certain to test your scripts with this version of 
+      Math::NumberCruncher thoroughly.
+
 4.05 Mon Jan 07 10:13:40 2002
     - Added acsc()
     - Added SIS(), which calculates a super-increasing sequence

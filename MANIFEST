@@ -2,5 +2,6 @@ Changes
 MANIFEST
 Makefile.PL
 NumberCruncher.pm
+NumberCruncher.pod
 README
 test.pl
