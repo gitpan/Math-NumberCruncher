@@ -1,7 +1,7 @@
 #---------------------------------------------------------------------------#
 # Math::NumberCruncher
 #       Date Written:   30-Aug-2000 02:41:52 PM
-#       Last Modified:  17-Dec-2001 09:54:11 AM
+#       Last Modified:  17-Dec-2001 03:44:11 PM
 #       Author:    Kurt Kincaid
 #       Copyright (c) 2001, Kurt Kincaid
 #           All Rights Reserved
@@ -22,7 +22,7 @@ use vars qw( $PI $_e_ $_g_ $VERSION @ISA @EXPORT_OK @array );
 
 @ISA       = qw( Exporter );
 @EXPORT_OK = qw( $PI $_e_ $_g_ $VERSION );
-$VERSION   = '4.02';
+$VERSION   = '4.03';
 
 $PI  = new Math::BigFloat "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458700660631558817488152092096282925409171536436789259036001133053054882046652138414695194151160943305727036575959195309218611738193261179310511854807446237996274956735188575272489122793818301194758";
 $_e_ = new Math::BigFloat "2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642742746639193200305992181741359662904357290033429526059563073813232862794349076323382988075319525101901157383418793070215408914993488416750924476146066808226480016847741185374234544243710753907774499206955170276183860626133138458300075204493382656029760673711320070932870912744374704723069697720931014169283681902551510865746377211125238978442505695369677078544996996794686445490598793163688923009879312";
@@ -1108,6 +1108,25 @@ sub Commas {
     return $_;
 }
 
+sub Root {
+    if ( ref $_[0] ) {
+        my $self = shift;
+    }
+    my $num        = shift;
+    my $root       = shift;
+    my $iterations = shift || 10;
+    if ( $root == 0 ) { return 1 }
+    if ( $num < 0 ) { return undef }
+    my $current = Math::BigFloat->new();
+    my $guess   = Math::BigFloat->new( ( $num / 2 ) - 1 );
+    for ( 1 .. $iterations ) {
+        $current = $guess - ( $guess ** $root - $num ) / ( $root * $guess ** ( $root - 1 ) );
+        if ( $guess eq $current ) { last }
+        $guess = $current;
+    }
+    return $current;
+}
+
 1;
 __END__
 
@@ -1306,6 +1325,8 @@ $coversine = Math::NumberCruncher::covers( $x );
 $haversine = Math::NumberCruncher::hav( $x );
 
 $grouped = Math::NumberCruncher::Commas( $number );
+
+$root = Math::NumberCruncher::Root( 55, 3 [, $iterations] );
 
 =head1 DESCRIPTION
 
@@ -1648,6 +1669,10 @@ Calculates the haversine.
 =head2 $grouped = B<Math::NumberCruncher::Commas>( $number );
 
 Performs digit grouping, making large number more visually pleasing.
+
+=head2 $root = B<Math::NumberCruncher::Root>( 55, 3 [, $iterations] );
+
+Calculates the N-th root of a given number. In the above example, $root is the cube root of 55. $iterations defaults to 10. While you can set $iterations as high as you like, it should be noted that each iteration gets progressivly slower. Root() can actually be used to calculate square roots with a greater degree of accuracy than SqrRoot(), but it requires a great deal of trial-and-error with the number of iterations. Too few iterations and the result is *very* inaccurate; too many iterations and is could easily take several minutes to get the result.
 
 =head1 AUTHOR
 

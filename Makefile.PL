@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    'NAME'		=> 'Math::NumberCruncher',
-    'VERSION_FROM'	=> 'NumberCruncher.pm', # finds $VERSION
-    'PREREQ_PM'		=> {}, # e.g., Module::Name => 1.1
+    'NAME'        => 'Math::NumberCruncher',
+    'VERSION_FROM'    => 'NumberCruncher.pm', # finds $VERSION
+    'PREREQ_PM'        => {}, # e.g., Module::Name => 1.1
 );

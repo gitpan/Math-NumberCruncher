@@ -2,4 +2,5 @@ Changes
 MANIFEST
 Makefile.PL
 NumberCruncher.pm
+README
 test.pl

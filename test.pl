@@ -10,7 +10,7 @@ END {
 }
 
 use Math::NumberCruncher;
-$tests = 84;
+$tests = 85;
 print ("Testing Math::NumberCruncher v$Math::NumberCruncher::VERSION\n\n");
 $loaded = 1;
 $count  = 1;
@@ -23,9 +23,7 @@ sub Testing {
     $count++;
 }
 
-use constant;
 use Math::BigInt;
-use Math::BigInt::Calc;
 use Math::NumberCruncher;
 
 @array1 = ( 1 .. 300 );
@@ -250,8 +248,13 @@ if ( $ref->StandardDeviation( \@array2 ) !~ /^86.8907359849138347715941065265/ )
 Testing();
 
 # Variance()
+$error = Math::BigFloat->new( 0.000000001 );
 @a = ( 5, 5, 7, 8, 8, 8, 8, 8, 9, 10 );
-if ( $ref->Variance( \@a ) !~ /^2.2400000000000099999999999999999999999996056/ ) {
+$variance = $ref->Variance( \@a );
+$diff = Math::BigFloat->new();
+$diff = $variance - 2.2400000000000099999999999999999999;
+$diff->babs();
+if ( $diff->bcmp( $error ) > 0 ) {
     $Failed{31} = "Variance()";
 }
 Testing();
@@ -584,6 +587,12 @@ Testing();
 # Commas()
 if ( $ref->Commas( 1000000 ) ne "1,000,000" ) {
     $Failed{84} = "Commas()";
+}
+Testing();
+
+# Root()
+if ( $ref->Root( 55, 3 ) !~ /^3.8029524607613916185467/ ) {
+    $Failed{35} = "Root()";
 }
 Testing();
 

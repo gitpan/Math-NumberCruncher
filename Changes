@@ -1,5 +1,10 @@
 Revision history for Perl extension Math::NumberCruncher.
 
+4.03 Wed Dec 19 15:44:11 2001
+    - Fixed the Variance() test in test.pl to allow for 
+      slight error tolerance.
+    - Added Root(), which calculates the N-th root of a given number.
+
 4.02 Mon Dec 17 11:49:18 2001
     - Modified all routines that use square roots to use
       the internal SqrRoot() function whenever possible, 
