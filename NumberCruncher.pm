@@ -1,7 +1,7 @@
 #---------------------------------------------------------------------------#
 # Math::NumberCruncher
 #       Date Written:   30-Aug-2000 02:41:52 PM
-#       Last Modified:  02-Jan-2002 12:09:44 PM
+#       Last Modified:  07-Jan-2002 09:56:33 AM
 #       Author:    Kurt Kincaid
 #       Copyright (c) 2001, Kurt Kincaid
 #           All Rights Reserved
@@ -22,10 +22,10 @@ use vars qw( $PI $_e_ $_g_ $VERSION @ISA @EXPORT_OK @array );
 
 @ISA       = qw( Exporter );
 @EXPORT_OK = qw( $PI $_e_ $_g_ $VERSION );
-$VERSION   = '4.04';
+$VERSION   = '4.05';
 
-$PI  = new Math::BigFloat "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458700660631558817488152092096282925409171536436789259036001133053054882046652138414695194151160943305727036575959195309218611738193261179310511854807446237996274956735188575272489122793818301194758";
-$_e_ = new Math::BigFloat "2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642742746639193200305992181741359662904357290033429526059563073813232862794349076323382988075319525101901157383418793070215408914993488416750924476146066808226480016847741185374234544243710753907774499206955170276183860626133138458300075204493382656029760673711320070932870912744374704723069697720931014169283681902551510865746377211125238978442505695369677078544996996794686445490598793163688923009879312";
+$PI  = new Math::BigFloat "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458700660631558817488152092096282925409171536436789259036001133053054882046652138414695194151160943305727036575959195309218611738193261179310511854807446237996274956735188575272489122793818301194913";
+$_e_ = new Math::BigFloat "2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642742746639193200305992181741359662904357290033429526059563073813232862794349076323382988075319525101901157383418793070215408914993488416750924476146066808226480016847741185374234544243710753907774499206955170276183860626133138458300075204493382656029760673711320070932870912744374704723069697720931014169283681902551510865746377211125238978442505695369677078544996996794686445490598793163688923009879313";
 $_g_ = new Math::BigFloat "0.00000000006669531020394004460639036467721593281909711076035470516023410031617030523217887622766564072454302758797214777667825510044012806167171589236837418491695566945822976915357714542230787643797974413526391669997203504054665363724804035965562393645452314150103566079451722764077047780001159557565199157185300966536171598445697039986219614596562560614935883348444842355101781772391448082340919856836998916369518450095951586361599964956411488706712604230707700620231121148199618806694838144697445182";
 
 sub new {
@@ -35,14 +35,12 @@ sub new {
 }
 
 sub Range {
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    my $junk = shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     return ( undef, undef ) unless defined $arrayref && @$arrayref > 0;
     my ( $zzz, $hi, $lo );
-    $hi = $lo = $$arrayref[0];
-    foreach $zzz (@$arrayref) {
+    $hi = $lo = $$arrayref[ 0 ];
+    foreach $zzz ( @$arrayref ) {
         if ( $zzz > $hi ) {
             $hi = $zzz;
         }
@@ -55,21 +53,17 @@ sub Range {
 }
 
 sub Mean {
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     return undef unless defined $arrayref && @$arrayref > 0;
     my $result;
-    foreach (@$arrayref) { $result += $_ }
+    foreach ( @$arrayref ) { $result += $_ }
     return $result / @$arrayref;
 }
 
 sub Median {    # median may or may not be an element of the array
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     return undef unless defined $arrayref && @$arrayref > 0;
     my $median = undef;
     my @array = sort { $a <=> $b } @$arrayref;
@@ -82,54 +76,46 @@ sub Median {    # median may or may not be an element of the array
 }
 
 sub OddMedian {    # median *is* an element of the array
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     return undef unless defined $arrayref && @$arrayref > 0;
     my @array = sort { $a <=> $b } @$arrayref;
     return $array[ ( @array - ( 0, 0, 1, 0 )[ @array & 3 ] ) / 2 ];
 }
 
 sub Mode {
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     return undef unless defined $arrayref && @$arrayref > 0;
     my ( %count, @result );
-    foreach (@$arrayref) { $count{$_}++ }
-    foreach ( sort { $count{$b} <=> $count{$a} } keys %count ) {
-        last if @result && $count{$_} != $count{ $result[0] };
+    foreach ( @$arrayref ) { $count{ $_ }++ }
+    foreach ( sort { $count{ $b } <=> $count{ $a } } keys %count ) {
+        last if @result && $count{ $_ } != $count{ $result[ 0 ] };
         push ( @result, $_ );
     }
     return OddMedian \@result;
 }
 
 sub Covariance {
-    my ( $self, $array1ref, $array2ref ) = @_;
-    unless ( defined $array2ref ) {
-        $array2ref = $array1ref;
-        $array1ref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $array1ref = shift;
+    my $array2ref = shift;
     unless ( defined $array1ref && defined $array2ref && @$array1ref > 0 && $array2ref > 0 ) {
         return undef;
     }
     my ( $i, $result );
     for ( $i = 0 ; $i < @$array1ref ; $i++ ) {
-        $result += $array1ref->[$i] * $array2ref->[$i];
+        $result += $array1ref->[ $i ] * $array2ref->[ $i ];
     }
     $result /= @$array1ref;
-    $result -= Mean($array1ref) * Mean($array2ref);
+    $result -= Mean( $array1ref ) * Mean( $array2ref );
     return $result;
 }
 
 sub Correlation {
-    my ( $self, $array1ref, $array2ref ) = @_;
-    unless ( defined $array2ref ) {
-        $array2ref = $array1ref;
-        $array1ref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $array1ref = shift;
+    my $array2ref = shift;
     unless ( defined $array1ref && defined $array2ref && @$array1ref > 0 && $array2ref > 0 ) {
         return undef;
     }
@@ -142,71 +128,61 @@ sub Correlation {
         $sum2      += $_;
         $sum2_sqrd += $_**2;
     }
-    return ( @$array1ref**2 ) * Covariance( $array1ref, $array2ref ) /
-      SqrRoot( abs( ( ( ( @$array1ref * $sum1_sqrd ) - ( $sum1**2 ) ) * ( ( @$array1ref * $sum2_sqrd ) - ( $sum2**2 ) ) ) ) );
+    return ( @$array1ref ** 2 ) * Covariance( $array1ref, $array2ref ) / SqrRoot(
+        abs( ( ( ( @$array1ref * $sum1_sqrd ) - ( $sum1 ** 2 ) ) * ( ( @$array1ref * $sum2_sqrd ) - ( $sum2 ** 2 ) ) ) ) );
 }
 
 sub BestFit {
-    my ( $self, $a_ref, $b_ref ) = @_;
-    unless ( defined $b_ref ) {
-        $b_ref = $a_ref;
-        $a_ref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my ( $a_ref, $b_ref ) = @_;
     unless ( defined $a_ref && defined $b_ref && @$a_ref > 0 && @$b_ref > 0 ) {
         return ( undef, undef );
     }
     my ( $i, $product, $sum1, $sum2, $sum1_sqrs, $a, $b );
     for ( $i = 0 ; $i <= @$a_ref ; $i++ ) {
-        $product   += $a_ref->[$i] * $b_ref->[$i];
-        $sum1      += $a_ref->[$i];
-        $sum1_sqrs += $a_ref->[$i]**2;
-        $sum2      += $b_ref->[$i];
+        $product   += $a_ref->[ $i ] * $b_ref->[ $i ];
+        $sum1      += $a_ref->[ $i ];
+        $sum1_sqrs += $a_ref->[ $i ]**2;
+        $sum2      += $b_ref->[ $i ];
     }
-    $b = ( ( @$a_ref * $product ) - ( $sum1 * $sum2 ) ) / ( ( @$a_ref * $sum1_sqrs ) - ( $sum1**2 ) );
+    $b = ( ( @$a_ref * $product ) - ( $sum1 * $sum2 ) ) / ( ( @$a_ref * $sum1_sqrs ) - ( $sum1 ** 2 ) );
     $a = ( $sum2 - $b * $sum1 ) / @$a_ref;
     return ( $b, $a );
 }
 
 sub Distance {    # Distance( $x1, $y1, $x2, $y2 );
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my @p = @_;
     return undef unless @p >= 3;
     my $d = @p / 2;
-    return SqrRoot( abs( ( $_[0] - $_[2] )**2 + ( $_[1] - $_[3] )**2 ) ) if $d == 2;
-    my $S = 0;
+    return SqrRoot( abs( ( $_[ 0 ] - $_[ 2 ] ) ** 2 + ( $_[ 1 ] - $_[ 3 ] ) ** 2 ) ) if $d == 2;
+    my $S  = 0;
     my @p0 = splice @p, 0, $d;
-
     for ( my $i = 0 ; $i < $d ; $i++ ) {
-        my $di = $p0[$i] - $p[$i];
+        my $di = $p0[ $i ] - $p[ $i ];
         $S += $di * $di;
     }
     return SqrRoot( abs( $S ) );
 }
 
 sub ManhattanDistance {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my @p = @_;
     return undef unless @p >= 3;
     my $d  = @p / 2;
     my $S  = 0;
     my @p0 = splice @p, 0, $d;
     for ( my $i = 0 ; $i < $d ; $i++ ) {
-        my $di = $p0[$i] - $p[$i];
+        my $di = $p0[ $i ] - $p[ $i ];
         $S += abs $di;
     }
     return $S;
 }
 
 sub AllOf {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $result = 1;
-    my @array = @_;
+    my @array  = @_;
     return undef unless @array >= 2;
     while ( @array ) {
         $result *= shift @array;
@@ -215,9 +191,7 @@ sub AllOf {
 }
 
 sub NoneOf {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $result = 1;
     @array = @_;
     foreach my $item ( @array ) {
@@ -227,35 +201,29 @@ sub NoneOf {
 }
 
 sub SomeOf {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     @array = @_;
     return undef unless @array >= 2;
     return 1 - NoneOf( @array );
 }
 
 sub Factorial {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $n = shift;
     return undef unless defined $n;
-    my $result = Math::BigFloat->new(1);
-    unless ( $n >= 0 && $n == int($n) ) {
+    my $result = Math::BigFloat->new( 1 );
+    unless ( $n >= 0 && $n == int( $n ) ) {
         return undef;
     }
-
     while ( $n > 1 ) {
         $result *= $n--;
     }
     return $result;
 }
 
+
 sub Permutation {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $n, $k ) = @_;
     return undef unless defined $n;
     my $result = 1;
@@ -265,22 +233,18 @@ sub Permutation {
 }
 
 sub Dice {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $number = shift || 1;
     my $sides  = shift || 6;
     my $plus   = shift;
     while ( $number-- ) {
-        $plus += int( rand($sides) + 1 );
+        $plus += int( rand( $sides ) + 1 );
     }
     return $plus;
 }
 
 sub RandInt {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $low  = shift || 0;
     my $high = shift || 1;
     if ( $low > $high ) {
@@ -290,20 +254,16 @@ sub RandInt {
 }
 
 sub RandomElement {
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     $arrayref->[ rand @{ $arrayref } ];
 }
 
 sub ShuffleArray {
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     return undef unless defined $arrayref && @$arrayref > 0;
-    for ( my $i = @$arrayref; --$i ; ) {
+    for ( my $i = @$arrayref ; --$i ; ) {
         my $j = int rand( $i + 1 );
         next if $i == $j;
         @$arrayref[ $i, $j ] = @$arrayref[ $j, $i ];
@@ -311,35 +271,30 @@ sub ShuffleArray {
 }
 
 sub Unique {
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     my %seen;
     my $zzz;
     my @unique;
     return undef unless defined $arrayref && @$arrayref > 0;
-    foreach $zzz (@$arrayref) {
-        push ( @unique, $zzz ) unless $seen{$zzz}++;
+    foreach $zzz ( @$arrayref ) {
+        push ( @unique, $zzz ) unless $seen{ $zzz }++;
     }
     return @unique;
 }
 
 sub Compare {
-    my ( $self, $arrayref1, $arrayref2 ) = @_;
-    unless ( defined $arrayref2 ) {
-        $arrayref2 = $arrayref1;
-        $arrayref1 = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my ( $arrayref1, $arrayref2 ) = @_;
     unless ( defined $arrayref1 && defined $arrayref2 && @$arrayref1 > 0 && @$arrayref2 > 0 ) {
         return undef;
     }
     my %seen;
     my @aonly;
     my $item;
-    foreach $item (@$arrayref2) { $seen{$item} = 1 }
-    foreach $item (@$arrayref1) {
-        unless ( $seen{$item} ) {
+    foreach $item ( @$arrayref2 ) { $seen{ $item } = 1 }
+    foreach $item ( @$arrayref1 ) {
+        unless ( $seen{ $item } ) {
             push ( @aonly, $item );
         }
     }
@@ -347,40 +302,34 @@ sub Compare {
 }
 
 sub Union {
-    my ( $self, $arrayref1, $arrayref2 ) = @_;
-    unless ( defined $arrayref2 ) {
-        $arrayref2 = $arrayref1;
-        $arrayref1 = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my ( $arrayref1, $arrayref2 ) = @_;
     unless ( defined $arrayref1 && defined $arrayref2 && @$arrayref1 > 0 && @$arrayref2 > 0 ) {
         return undef;
     }
     my ( @union, @temp );
     my %union;
     my $zzz;
-    foreach $zzz (@$arrayref1) { $union{$zzz} = 1 }
-    foreach $zzz (@$arrayref2) { $union{$zzz} = 1 }
+    foreach $zzz ( @$arrayref1 ) { $union{ $zzz } = 1 }
+    foreach $zzz ( @$arrayref2 ) { $union{ $zzz } = 1 }
     return keys %union;
 }
 
 sub Intersection {
-    my ( $self, $arrayref1, $arrayref2 ) = @_;
-    unless ( defined $arrayref2 ) {
-        $arrayref2 = $arrayref1;
-        $arrayref1 = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my ( $arrayref1, $arrayref2 ) = @_;
     unless ( defined $arrayref1 && defined $arrayref2 && @$arrayref1 > 0 && @$arrayref2 > 0 ) {
         return undef;
     }
     my @isect = undef;
     my ( %isect, %union, %count );
     my $zzz;
-    foreach $zzz (@$arrayref1) {
-        $union{$zzz} = 1;
+    foreach $zzz ( @$arrayref1 ) {
+        $union{ $zzz } = 1;
     }
-    foreach $zzz (@$arrayref2) {
-        if ( $union{$zzz} ) {
-            $isect{$zzz} = 1;
+    foreach $zzz ( @$arrayref2 ) {
+        if ( $union{ $zzz } ) {
+            $isect{ $zzz } = 1;
         }
     }
     @isect = keys %isect;
@@ -388,42 +337,38 @@ sub Intersection {
 }
 
 sub Difference {
-    my ( $self, $arrayref1, $arrayref2 ) = @_;
-    unless ( defined $arrayref2 ) {
-        $arrayref2 = $arrayref1;
-        $arrayref1 = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my ( $arrayref1, $arrayref2 ) = @_;
     unless ( defined $arrayref1 && defined $arrayref2 && @$arrayref1 > 0 && @$arrayref2 > 0 ) {
         return undef;
     }
     my ( @isect, @diff, @union ) = undef;
     my $zzz;
     my %count;
-    foreach $zzz ( @$arrayref1, @$arrayref2 ) { $count{$zzz}++ }
+    foreach $zzz ( @$arrayref1, @$arrayref2 ) { $count{ $zzz }++ }
     foreach $zzz ( keys %count ) {
         push @union, $zzz;
-        push @{ $count{$zzz} > 1 ? \@isect : \@diff }, $zzz;
+        push @{ $count{ $zzz } > 1 ? \@isect : \@diff }, $zzz;
     }
     return @diff;
 }
 
 sub GaussianRand {
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $u1, $u2, $w, $g1, $g2 );
     do {
         $u1 = 2 * rand() - 1;
         $u2 = 2 * rand() - 1;
         $w  = $u1 * $u1 + $u2 * $u2;
     } while ( $w >= 1 );
-    $w  = sqrt( abs( ( -2 * log($w) ) / $w ) );
+    $w  = sqrt( abs( ( -2 * log( $w ) ) / $w ) );
     $g2 = $u1 * $w;
     $g1 = $u2 * $w;
     return wantarray ? ( $g1, $g2 ) : $g1;
 }
 
 sub Choose {    # Probability of getting $k heads is $n tosses
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $n, $k ) = @_;
     return undef unless defined $n && defined $k;
     my ( $result, $j ) = ( 1, 1 );
@@ -438,9 +383,7 @@ sub Choose {    # Probability of getting $k heads is $n tosses
 }
 
 sub Binomial {    # probability of $k successes in $n attempts, given probability of $p
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $n, $k, $p ) = @_;
     return $k == 0 if $p == 0;
     return $k != $n if $p == 1;
@@ -448,53 +391,44 @@ sub Binomial {    # probability of $k successes in $n attempts, given probabilit
 }
 
 sub GaussianDist {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     use constant two_pi_sqrt_inverse => 1 / sqrt( 8 * atan2( 1, 1 ) );
     my ( $x, $mean, $variance ) = @_;
     return two_pi_sqrt_inverse * exp( -( $x - $mean )**2 / ( 2 * $variance ) ) / SqrRoot( abs( $variance ) );
 }
 
 sub StandardDeviation {
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     return undef unless defined $arrayref && @$arrayref > 0;
-    my $mean = Mean($arrayref);
+    my $mean = Mean( $arrayref );
     return SqrRoot( abs( Mean( [ map $_**2, @$arrayref ] ) - ( $mean**2 ) ) );
 }
 
 sub Variance {
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     return undef unless defined $arrayref && @$arrayref > 0;
-    return StandardDeviation( $arrayref ) ** 2;
+    return StandardDeviation( $arrayref )**2;
 }
 
 sub StandardScores {    # number of StdDevs above the mean for each element
-    my ( $self, $arrayref ) = @_;
-    unless ( defined $arrayref ) {
-        $arrayref = $self;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $arrayref = shift;
     return undef unless defined $arrayref && @$arrayref > 0;
-    my $mean = Mean($arrayref);
+    my $mean = Mean( $arrayref );
     my ( $i, @scores );
-    my $deviation = StandardDeviation($arrayref);
+    my $deviation = StandardDeviation( $arrayref );
     return unless $deviation;
+
     for ( $i = 0 ; $i < @$arrayref ; $i++ ) {
-        push @scores, ( $arrayref->[$i] - $mean ) / $deviation;
+        push @scores, ( $arrayref->[ $i ] - $mean ) / $deviation;
     }
     return @scores;
 }
 
 sub SignSignificance {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $trials, $hits, $probability ) = @_;
     return undef unless defined $trials && defined $hits && defined $probability;
     my $confidence;
@@ -505,9 +439,7 @@ sub SignSignificance {
 }
 
 sub EMC2 {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $var, $unit ) = @_;
     return undef unless defined $var && defined $unit;
     my $C;
@@ -517,8 +449,8 @@ sub EMC2 {
         $C = 186282.056;    # miles per second
     }
     my $result = Math::BigFloat->new();
-    my $sqrd = Math::BigFloat->new( $C );
-    $sqrd **= 2;
+    my $sqrd   = Math::BigFloat->new( $C );
+    $sqrd**= 2;
     if ( $var =~ /^m(.*)$/i ) {
         my $val = $1;
         $result = $val * $sqrd;
@@ -532,20 +464,18 @@ sub EMC2 {
 }
 
 sub FMA {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my @vars = @_;
     @vars = sort @vars;
     my ( $result, $acc, $force, $mass ) = undef;
-    if ( $vars[0] =~ /^[Aa](.*)$/ ) {
+    if ( $vars[ 0 ] =~ /^[Aa](.*)$/ ) {
         $acc = $1;
-    } elsif ( $vars[0] =~ /^[Ff](.*)$/ ) {
+    } elsif ( $vars[ 0 ] =~ /^[Ff](.*)$/ ) {
         $force = $1;
     }
-    if ( $vars[1] =~ /^[Ff](.*)$/ ) {
+    if ( $vars[ 1 ] =~ /^[Ff](.*)$/ ) {
         $force = $1;
-    } elsif ( $vars[1] =~ /^[Mm](.*)$/ ) {
+    } elsif ( $vars[ 1 ] =~ /^[Mm](.*)$/ ) {
         $mass = $1;
     }
     if ( $acc && $force ) {
@@ -561,25 +491,20 @@ sub FMA {
 }
 
 sub Predict {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $slope, $y_intercept, $proposed ) = @_;
     return $slope * $proposed + $y_intercept;
 }
 
 sub TriangleHeron {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $a, $b, $c );
     if ( @_ == 3 ) {
         ( $a, $b, $c ) = @_;
     } elsif ( @_ == 6 ) {
         ( $a, $b, $c ) = (
-          Distance( $_[0], $_[1], $_[2], $_[3] ),
-          Distance( $_[2], $_[3], $_[4], $_[5] ),
-          Distance( $_[4], $_[5], $_[0], $_[1] )
+          Distance( $_[ 0 ], $_[ 1 ], $_[ 2 ], $_[ 3 ] ), Distance( $_[ 2 ], $_[ 3 ], $_[ 4 ], $_[ 5 ] ),
+          Distance( $_[ 4 ], $_[ 5 ], $_[ 0 ], $_[ 1 ] )
         );
     } else {
         return undef;
@@ -589,9 +514,7 @@ sub TriangleHeron {
 }
 
 sub PolygonPerimeter {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my @xy = @_;
     my $P  = 0;
     return undef unless @xy % 2 == 0 && @xy > 0;
@@ -602,39 +525,35 @@ sub PolygonPerimeter {
 }
 
 sub Clockwise {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $x0, $y0, $x1, $y1, $x2, $y2 ) = @_;
     return undef unless defined $x0 && defined $y0 && defined $x1 && defined $y1 && defined $x2 && defined $y2;
     return ( $x2 - $x0 ) * ( $y1 - $y0 ) - ( $x1 - $x0 ) * ( $y2 - $y0 );
 }
 
 sub InPolygon {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $x, $y, @xy ) = @_;
     return undef unless defined $x && defined $y && @xy > 0;
     my $n = @xy / 2;
     my @i = map { 2 * $_ } 0 .. ( @xy / 2 );
-    my @x = map { $xy[$_] } @i;
+    my @x = map { $xy[ $_ ] } @i;
     my @y = map { $xy[ $_ + 1 ] } @i;
     my ( $i, $j );
     my $side = 0;
+
     for ( $i = 0, $j = $n - 1 ; $i < $n ; $j = $i++ ) {
-        if ( ( ( ( $y[$i] <= $y ) && ( $y < $y[$j] ) ) || ( ( $y[$j] <= $y ) && ( $y < $y[$i] ) ) )
-             and ( $x < ( $x[$j] - $x[$i] ) * ( $y - $y[$i] ) / ( $y[$j] - $y[$i] ) + $x[$i] ) ) {
-                 $side = not $side;
+        if ( ( ( ( $y[ $i ] <= $y ) && ( $y < $y[ $j ] ) ) || ( ( $y[ $j ] <= $y ) && ( $y < $y[ $i ] ) ) )
+            and ( $x < ( $x[ $j ] - $x[ $i ] ) * ( $y - $y[ $i ] ) / ( $y[ $j ] - $y[ $i ] ) + $x[ $i ] ) )
+        {
+            $side = not $side;
         }
     }
     return $side ? 1 : 0;
 }
 
 sub BoundingBox_Points {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $d, @points ) = @_;
     return undef unless defined $d && @points > 0;
     my @bb;
@@ -645,9 +564,7 @@ sub BoundingBox_Points {
 }
 
 sub BoundingBox {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $d, @bb ) = @_;
     return undef unless defined $d && @bb > 0;
     my @p = splice( @bb, 0, @bb - 2 * $d );
@@ -655,54 +572,53 @@ sub BoundingBox {
     for ( my $i = 0 ; $i < $d ; $i++ ) {
         for ( my $j = 0 ; $j < @p ; $j += $d ) {
             my $ij = $i + $j;
-            $bb[$i] = $p[$ij] if $p[$ij] < $bb[$i];
-            $bb[ $i + $d ] = $p[$ij] if $p[$ij] > $bb[ $i + $d ];
+            $bb[ $i ] = $p[ $ij ] if $p[ $ij ] < $bb[ $i ];
+            $bb[ $i + $d ] = $p[ $ij ] if $p[ $ij ] > $bb[ $i + $d ];
         }
     }
     return @bb;
 }
 
 sub InTriangle {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $x, $y, $x0, $y0, $x1, $y1, $x2, $y2 ) = @_;
-    return undef unless defined defined $x && defined $y && defined $x0 && defined $y0 && defined $x1 && defined $y1 && defined $x2 && defined $y2;
+    return undef unless defined defined $x
+      && defined $y
+      && defined $x0
+      && defined $y0
+      && defined $x1
+      && defined $y1
+      && defined $x2
+      && defined $y2;
     my $cw0 = Clockwise( $x0, $y0, $x1, $y1, $x, $y );
-    return 1 if abs($cw0) < epsilon;
+    return 1 if abs( $cw0 ) < epsilon;
     my $cw1 = Clockwise( $x1, $y1, $x2, $y2, $x, $y );
-    return 1 if abs($cw1) < epsilon;
+    return 1 if abs( $cw1 ) < epsilon;
     return 0 if ( $cw0 < 0 and $cw1 > 0 ) or ( $cw0 > 0 and $cw1 < 0 );
     my $cw2 = Clockwise( $x2, $y2, $x0, $y0, $x, $y );
-    return 1 if abs($cw2) < epsilon;
+    return 1 if abs( $cw2 ) < epsilon;
     return 0 if ( $cw0 < 0 and $cw2 > 0 ) or ( $cw0 > 0 and $cw2 < 0 );
     return 1;
 }
 
 sub PolygonArea {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my @xy = @_;
     return undef unless @xy % 2 == 0 && @xy > 0;
     my $A = 0;
-    for ( my ( $xa, $ya ) = @xy[ -2, -1 ]; my ( $xb, $yb ) = splice @xy, 0, 2; ( $xa, $ya ) = ( $xb, $yb ) ) {
+    for ( my ( $xa, $ya ) = @xy[ -2, -1 ] ; my ( $xb, $yb ) = splice @xy, 0, 2 ; ( $xa, $ya ) = ( $xb, $yb ) ) {
         $A += Determinant( $xa, $ya, $xb, $yb );
     }
     return abs $A / 2;
 }
 
 sub Determinant {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    $_[0] * $_[3] - $_[1] * $_[2];
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    $_[ 0 ] * $_[ 3 ] - $_[ 1 ] * $_[ 2 ];
 }
 
 sub CircleArea {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $radius = shift;
     return undef unless defined $radius;
     my $area = Math::BigFloat->new( 1 );
@@ -711,9 +627,7 @@ sub CircleArea {
 }
 
 sub Circumference {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $diameter = shift;
     return undef unless defined $diameter;
     my $circumference = Math::BigFloat->new( 1 );
@@ -722,9 +636,7 @@ sub Circumference {
 }
 
 sub SphereVolume {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $radius = shift;
     return undef unless defined $radius;
     my $volume = Math::BigFloat->new( 1 );
@@ -733,9 +645,7 @@ sub SphereVolume {
 }
 
 sub SphereSurface {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $radius = shift;
     return undef unless defined $radius;
     my $surface = Math::BigFloat->new( 1 );
@@ -744,9 +654,7 @@ sub SphereSurface {
 }
 
 sub RuleOf72 {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $pct = shift;
     return undef unless defined $pct;
     my $num = Math::BigFloat->new( 72 );
@@ -755,9 +663,7 @@ sub RuleOf72 {
 }
 
 sub CylinderVolume {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $radius, $height ) = @_;
     return undef unless defined $radius && defined $height;
     my $volume = Math::BigFloat->new( 1 );
@@ -766,22 +672,16 @@ sub CylinderVolume {
 }
 
 sub ConeVolume {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $lowerbase, $height ) = @_;
     return undef unless defined $lowerbase && defined $height;
-    my $num = Math::BigFloat->new( 1 );
-    $num *= ( $lowerbase * $height );
+    my $num = Math::BigFloat->new( $lowerbase * $height );
     $num /= 3;
     return $num;
-#    return ( 1 / 3 ) * $lowerbase * $height;
 }
 
 sub deg2rad {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $degrees = shift;
     return undef unless defined $degrees;
     my $radians = Math::BigFloat->new( 1 );
@@ -790,9 +690,7 @@ sub deg2rad {
 }
 
 sub rad2deg {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $radians = shift;
     return undef unless defined $radians;
     my $degrees = Math::BigFloat->new( 1 );
@@ -801,55 +699,43 @@ sub rad2deg {
 }
 
 sub C2F {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $degrees = Math::BigFloat->new( shift );
     return undef unless defined $degrees;
     return $degrees * 1.8 + 32;
 }
 
 sub F2C {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $degrees = Math::BigFloat->new( shift );
     return undef unless defined $degrees;
     return ( $degrees - 32 ) / 1.8;
 }
 
 sub cm2in {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $cm = Math::BigFloat->new( shift );
     return undef unless defined $cm;
     return $cm * 0.3937007874;
 }
 
 sub in2cm {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $inches = Math::BigFloat->new( shift );
     return undef unless defined $inches;
     return $inches * 2.54;
 }
 
 sub m2ft {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    my $temp = shift;
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $temp   = shift;
     my $meters = Math::BigFloat->new( $temp );
     return undef unless defined $temp;
     return $meters * 3.280839895;
 }
 
 sub ft2m {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $temp = shift;
     my $feet = Math::BigFloat->new( $temp );
     return undef unless defined $temp;
@@ -857,29 +743,23 @@ sub ft2m {
 }
 
 sub kg2lb {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $temp = shift;
-    my $kg = Math::BigFloat->new( $temp );
+    my $kg   = Math::BigFloat->new( $temp );
     return undef unless defined $temp;
     return $kg * 2.204622622;
 }
 
 sub lb2kg {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $temp = shift;
-    my $lb = Math::BigFloat->new( $temp );
+    my $lb   = Math::BigFloat->new( $temp );
     return undef unless defined $temp;
     return $lb * 0.45359237;
 }
 
 sub RelativeStride {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $stride_length, $leg_length ) = @_;
     return undef unless defined $stride_length && defined $leg_length;
     my $rs = Math::BigFloat->new( $stride_length );
@@ -888,29 +768,23 @@ sub RelativeStride {
 }
 
 sub RelativeStride_2 {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $temp = shift;
-    my $DS = Math::BigFloat->new( $temp );
+    my $DS   = Math::BigFloat->new( $temp );
     return undef unless defined $temp;
     return 1.1 * $DS + 1;
 }
 
 sub DimensionlessSpeed {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $temp = shift;
-    my $RSL = Math::BigFloat->new( $temp );
+    my $RSL  = Math::BigFloat->new( $temp );
     return undef unless defined $temp;
     return ( $RSL - 1 ) / 1.1;
 }
 
 sub DimensionlessSpeed_2 {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $speed, $legLength ) = @_;
     return undef unless defined $speed && defined $legLength;
     my $DS = Math::BigFloat->new();
@@ -919,39 +793,31 @@ sub DimensionlessSpeed_2 {
 }
 
 sub ActualSpeed {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     unless ( scalar( @_ ) == 2 ) { return undef }
-    my $legLength = Math::BigFloat->new( shift );
+    my $legLength          = Math::BigFloat->new( shift );
     my $dimensionlessSpeed = Math::BigFloat->new( shift );
-    my $AS = Math::BigFloat->new();
+    my $AS                 = Math::BigFloat->new();
     $AS = $dimensionlessSpeed * SqrRoot( Math::BigFloat->bstr( abs( $legLength * 9.80665 ) ) );
     return $AS;
 }
 
 sub Eccentricity {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $a, $b ) = @_;
     unless ( $a && $b ) { return undef }
     return SqrRoot( abs( $a**2 - $b**2 ) ) / $a;
 }
 
 sub LatusRectum {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $a, $b ) = @_;
     unless ( $a && $b ) { return undef }
     return 2 * $b**2 / $a;
 }
 
 sub EllipseArea {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $a, $b ) = @_;
     unless ( $a && $b ) { return undef }
     my $area = Math::BigFloat->new();
@@ -960,180 +826,164 @@ sub EllipseArea {
 }
 
 sub OrbitalVelocity {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    my $r = Math::BigFloat->new( shift );
-    my $a = Math::BigFloat->new( shift );
-    my $M = Math::BigFloat->new( shift );
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    unless ( scalar @_ >= 3 ) { return undef }
+    my $r          = Math::BigFloat->new( shift );
+    my $a          = Math::BigFloat->new( shift );
+    my $M          = Math::BigFloat->new( shift );
     my $iterations = 4 || shift;
-    my $num = 2 * $_g_ * $M * ( (1/$r) - (1/(2*$a)) );
-    my $x = Math::BigFloat->bstr( $num );
-    my $v = SqrRoot( $x, $iterations );
+    my $num        = 2 * $_g_ * $M * ( ( 1 / $r ) - ( 1 / ( 2 * $a ) ) );
+    my $x          = Math::BigFloat->bstr( $num );
+    my $v          = SqrRoot( $x, $iterations );
     return $v / 1000000;
 }
 
 sub SqrRoot {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     return Root( shift, 2, shift || 5 );
 }
 
 sub asin {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $sine = shift;
     return undef unless ( $sine >= -1 && $sine <= 1 );
-    my $num = SqrRoot( abs( 1-$sine * $sine ) );
-    my $x = Math::BigFloat->bstr( $num );
+    my $num = SqrRoot( abs( 1 - $sine * $sine ) );
+    my $x   = Math::BigFloat->bstr( $num );
     return atan2( $sine, $x );
 }
 
 sub csc {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    return 1 / sin( shift );
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $csc = Math::BigFloat->new( 1 );
+    $csc->bdiv( sin( shift ) );
+    return $csc;
 }
 
 sub acos {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    my $num = shift;
-    my $temp = SqrRoot( abs(1 - $num * $num) );
-    my $x = Math::BigFloat->bstr( $temp );
-    return atan2( $x, $num );
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $num  = shift;
+    my $asin = asin( $num );
+    my $acos = $PI->copy()->bdiv( 2 );
+    $acos->bsub( $asin );
+    return $acos;
 }
 
 sub sec {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    return 1 / cos( shift );
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $sec = Math::BigFloat->new( 1 );
+    $sec->bdiv( cos( shift ) );
+    return $sec;
 }
 
 sub tan {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $num = shift;
-    return sin( $num ) / cos( $num );
+    my $tan = Math::BigFloat->new( sin( $num ) );
+    $tan->bdiv( cos( $num ) );
+    return $tan;
 }
 
 sub cot {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $num = shift;
-    return cos( $num ) / sin( $num );
+    my $cot = Math::BigFloat->new( cos( $num ) );
+    $cot->bdiv( sin( $num ) );
+    return $cot;
 }
 
 sub vers {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    return 1 - cos( shift );
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $vers = Math::BigFloat->new( 1 );
+    $vers->bsub( cos( shift ) );
+    return $vers;
 }
 
 sub exsec {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     return sec( shift ) - 1;
 }
 
 sub covers {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    return 1 - sin( shift );
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $covers = Math::BigFloat->new( 1 );
+    $covers->bsub( sin( shift ) );
+    return $covers;
 }
 
 sub hav {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     return vers( shift ) / 2;
 }
 
 sub atan {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    my $num = shift;
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $num  = shift;
     my $temp = SqrRoot( abs( $num ** 2 + 1 ) );
-    my $x = Math::BigFloat->bstr( $temp );
+    my $x    = Math::BigFloat->bstr( $temp );
     return acos( 1 / $x );
 }
 
+sub acsc {
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $num   = shift;
+    return $PI->copy()->bdiv( 2 ) - asec( $num );
+}
+    
+
 sub acot {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     return atan( 1 / shift );
 }
 
 sub asec {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
-    my $num = shift;
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $num  = shift;
     my $temp = SqrRoot( abs( $num ** 2 - 1 ) );
-    my $x = Math::BigFloat->bstr( $temp );
+    my $x    = Math::BigFloat->bstr( $temp );
     return atan( $x );
 }
 
 sub Commas {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     local $_ = shift;
     1 while s/^(-?\d+)(\d{3})/$1,$2/;
     return $_;
 }
 
 sub Root {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my $num        = shift;
     my $root       = shift;
     my $iterations = shift || 5;
     if ( $num < 0 ) { return undef }
     if ( $root == 0 ) { return 1 }
-    my $Num = Math::BigFloat->new( $num );
-    my $Root = Math::BigFloat->new( $root );
+    my $Num     = Math::BigFloat->new( $num );
+    my $Root    = Math::BigFloat->new( $root );
     my $current = Math::BigFloat->new();
-    my $guess   = Math::BigFloat->new( $num ** ( 1 / $root ) );
-    my $t       = Math::BigFloat->new( $guess ** ( $root - 1 ) ); 
+    my $guess   = Math::BigFloat->new( $num**( 1 / $root ) );
+    my $t       = Math::BigFloat->new( $guess**( $root - 1 ) );
     for ( 1 .. $iterations ) {
-        $current = $guess - ( $guess * $t - $Num ) / ( $Root * $t  );
+        $current = $guess - ( $guess * $t - $Num ) / ( $Root * $t );
         last unless $guess->bcmp( $current );
-        $t     = $current ** ( $root - 1 );
+        $t     = $current**( $root - 1 );
         $guess = $current->copy();
     }
     return $current;
 }
 
 sub Root2 {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $n, $r, $p ) = @_;
     $p++;
     my $log = Ln( $n, $p ) / $r;
     Exp( $log, $p )->bfround( 1 - $p );
 }
 
+my $max_econst  = $_e_->copy();
+
 sub ECONST {
-    my $max_p = 0;
-    my $max_econst;
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $max_p = $_e_->length() - 1;
     my ( $P ) = @_;
     $P = 20 unless defined $P;
     if ( $P <= $max_p ) {
@@ -1156,20 +1006,19 @@ sub ECONST {
 }
 
 sub Exp {
-    if ( $_[0] =~ /NumberCruncher/ ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $X, $P ) = @_;
     $X = ref( $X ) ? $X->copy : Math::BigFloat->new( $X );
     $P = 20 unless defined $P;
-    $X->bfround( -$P );
+    my $modP = sprintf( "%.0f", $P * 1.05 );
+    $X->bfround( -$modP );
     my $Y = $X->copy->bfround( 0 );
-    $Y->bfround( -$P );
+    $Y->bfround( -$modP );
     $Y += ( 0 cmp $X ) if abs( $X - $Y ) > 0.5;
     $X = $X - $Y;
-    my $Sum  = Math::BigFloat->new( "1" )->bfround( -$P );
-    my $Term = Math::BigFloat->new( "1" )->bfround( -$P );
-    my $J    = Math::BigFloat->new( "1" )->bfround( -$P );
+    my $Sum  = Math::BigFloat->new( "1" )->bfround( -$modP );
+    my $Term = Math::BigFloat->new( "1" )->bfround( -$modP );
+    my $J    = Math::BigFloat->new( "1" )->bfround( -$modP );
     {
         $Term *= $X / $J;
         my $NewSum = $Sum + $Term;
@@ -1178,27 +1027,27 @@ sub Exp {
         $J++;
         redo;
     }
-    return $Sum unless $Y cmp 0;
-    my $E   = ECONST( $P );
+    return $Sum->bfround(-$P) unless $Y cmp 0;
+    my $E   = ECONST( $modP );
     my $E_Y = 1;
     $E_Y *= $E for 1 .. $Y;
     $E_Y *= $Sum;
-    return $E_Y;
+    return $E_Y->bfround(-$P);
 }
 
 sub Ln {
-    if ( $_[0] =~ /NumberCruncher/ ) {
-        my $self = shift;
-    }
-    my ( $X, $P ) = @_;
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $X = shift;
+    my $P = shift;
     $X = ref( $X ) ? $X->copy : Math::BigFloat->new( $X );
     $P = 20 unless defined $P;
-    $X->bfround( -$P );
+    my $modP = sprintf( "%.0f", $P * 1.05 );
+    $X->bfround( -$modP );
     return -Ln( 1 / $X, $P ) if $X < 1;
     my $M = 0;
-    ++$M until ( 2**$M ) > $X;
+    ++$M until ( 2 ** $M ) > $X;
     $M--;
-    my $Z        = $X / ( 2**$M );
+    my $Z        = $X / ( 2 ** $M );
     my $Zeta     = ( 1 - $Z ) / ( 1 + $Z );
     my $N        = $Zeta;
     my $Ln       = $Zeta;
@@ -1207,25 +1056,29 @@ sub Ln {
     {
         $N = $N * $Zetasup2;
         my $NewLn = $Ln + $N / ( 2 * $J + 1 );
-        return $M * LN2P( $P ) - 2 * $Ln unless $NewLn cmp $Ln;
+        unless ( $NewLn cmp $Ln ) {
+            my $ans = $M * LN2P( $modP ) - 2 * $Ln;
+            return $ans->bfround(-$P);
+        }
         $Ln = $NewLn;
         $J++;
         redo;
     }
 }
 
+my $max_ln2p = new Math::BigFloat "0.69314718055994530941723212145817656807550013436025525412068000949339362196969471560586332699641868754200148102057068573368552023575813055703267075163507596193072757082837143519030703862389167347112335011536449795523912047517268157493206515552473413952588295045300709532636664265410423915781495204374043038550080194417064167151864471283996817178454695702627163106454615025720740248163777338963855069526066834113727387372292895649354702576265209885969320196505855476470330679365443254763274495125040607";
+
 sub LN2P {
-    my $max_p = 0;
-    my $max_ln2p;
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $max_p = $max_ln2p->length() - 1;
     my ( $P ) = @_;
+    $P = 20 unless defined $P;
+    my $modP = sprintf( "%.0f", $P * 1.05 );
     if ( $P <= $max_p ) {
         return $max_ln2p->copy->bfround( -$P );
     }
-    my $one      = Math::BigFloat->new( "1" )->bfround( -$P );
-    my $two      = Math::BigFloat->new( "2" )->bfround( -$P );
+    my $one      = Math::BigFloat->new( "1" )->bfround( -$modP );
+    my $two      = Math::BigFloat->new( "2" )->bfround( -$modP );
     my $N        = $one / 3;
     my $Ln       = $N;
     my $Zetasup2 = $one / 9;
@@ -1234,8 +1087,8 @@ sub LN2P {
         $N = $N * $Zetasup2;
         my $NewLn = $Ln + $N / ( 2 * $J + 1 );
         unless ( $NewLn cmp $Ln ) {
-            $max_p = $P;
-            return $max_ln2p = $Ln * 2;
+            $max_ln2p = $Ln * 2;
+            return $max_ln2p->bfround(-$P);
         }
         $Ln = $NewLn;
         $J++;
@@ -1244,31 +1097,46 @@ sub LN2P {
 }
 
 sub PythagTriples {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $s, $t ) = @_;
     if ( $s <= 0 || $t <= 0 ) { return undef }
-    my $x = Math::BigFloat->new( abs( $t ** 2 - $s ** 2 ) );
+    my $x = Math::BigFloat->new( abs( $t**2 - $s**2 ) );
     my $y = Math::BigFloat->new( 2 * $s * $t );
-    my $z = Math::BigFloat->new( $t ** 2 + $s ** 2 );
+    my $z = Math::BigFloat->new( $t**2 + $s**2 );
     return $x, $y, $z;
 }
 
 sub PythagTriplesSeq {
-    if ( ref $_[0] ) {
-        my $self = shift;
-    }
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
     my ( $s, $t ) = @_;
     if ( $s <= 0 || $t <= 0 ) { return undef }
-    my $x = Math::BigFloat->new( $s ** 2 );
-    my $y = Math::BigFloat->new( $t ** 2 );
+    my $x   = Math::BigFloat->new( $s**2 );
+    my $y   = Math::BigFloat->new( $t**2 );
     my $sum = $x->copy()->badd( $y );
     return SqrRoot( Math::BigFloat->bstr( $sum ) );
 }
 
+sub SIS {
+    shift if UNIVERSAL::isa( $_[ 0 ], __PACKAGE__ );
+    my $num  = shift || 1;
+    my $nums = shift || 50;
+    my $inc  = shift || 1;
+    my @nums;
+    push ( @nums, $num );
+    my $next = Math::BigFloat->new( $num + 2 );
+    my $sum  = Math::BigFloat->new( $num + $next );
+    for ( 1 .. --$nums ) {
+        $num = $next;
+        push ( @nums, $next );
+        $next = $sum + $inc;
+        $sum += $next;
+    }
+    return @nums;
+}
+
 1;
 __END__
+
 
 =head1 NAME
 
@@ -1458,6 +1326,8 @@ $tangent = Math::NumberCruncher::tan( $x );
 
 $cotangent = Math::NumberCruncher::cot( $x );
 
+$arccosecant = Math::NumberCruncher::acsc( $x );
+
 $versine = Math::NumberCruncher::vers( $x );
 
 $coversine = Math::NumberCruncher::covers( $x );
@@ -1477,6 +1347,8 @@ $num = Math::NumberCruncher::Exp( 0.111 [, $decimal_places] );
 ( $A, $B, $C ) = Math::NumberCruncher::PythagTriples( $x, $y );
 
 $z = Math::NumberCruncher::PythagTriplesSeq( $x, $y );
+
+@nums = Math::NumberCruncher::SIS( [$start, $numbers, $increment] );
 
 =head1 DESCRIPTION
 
@@ -1804,6 +1676,10 @@ Calculates the tangent.
 
 Calculates the cotangent.
 
+=head2 $arccosecant = B<Math::NumberCruncher::acsc>( $x );
+
+Calculates the inverse of the cosecant.
+
 =head2 $versine = B<Math::NumberCruncher::vers>( $x );
 
 Calculates the versine.
@@ -1844,13 +1720,17 @@ Calculates Pythagorian Triples based on the two numbers passed. Remember Pythago
 
 Completes the Pythagorian Triple sequence based on the two numbers passed.
 
+=head2 @nums = B<Math::NumberCruncher::SIS>( [$start, $numbers, $increment] );
+
+Returns an array of numbers in a super-increasing sequence. All parameters are optional. You can pass the number with which you want the sequence to start, the quantity numbers you want returned, and by how much you want to increase the next number over the sum of all of the previous numbers. By default, start is 1, numbers returned is 50, and increment is 1.
+
 =head1 AUTHOR
 
 Kurt Kincaid, sifukurt@yahoo.com
 
 =head1 COPYRIGHT
 
-Copyright (c) 2001, Kurt Kincaid.  All rights reserved. This code is free software; you can redistribute it and/or modify it under the same terms as Perl itself.  Several of the algorithms contained herein are adapted from _Mastering Algorithms with Perl_, by Jon Orwant, Jarkko Hietaniemi, and John Macdonald. Copyright (c) 1999 O-Reilly & Associates, Inc. 
+Copyright (c) 2002, Kurt Kincaid.  All rights reserved. This code is free software; you can redistribute it and/or modify it under the same terms as Perl itself.  Several of the algorithms contained herein are adapted from _Mastering Algorithms with Perl_, by Jon Orwant, Jarkko Hietaniemi, and John Macdonald. Copyright (c) 1999 O-Reilly & Associates, Inc. 
 
 =head1 SPECIAL THANKS
 
@@ -1863,3 +1743,5 @@ I would also like to thank the folks at L<http://www.perlmonks.org> for their in
 perl(1).
 
 =cut
+
+

@@ -1,5 +1,14 @@
 Revision history for Perl extension Math::NumberCruncher.
 
+4.05 Mon Jan 07 10:13:40 2002
+    - Added acsc()
+    - Added SIS(), which calculates a super-increasing sequence
+    - SIGNIFICANT optimization to Ln(), Exp(), Root2(), ECONST() and
+      related functions, thanks to Douglas Wilson. With his assistance,
+      managed to get a an improvement in ECONST() of 12,592% for less
+      than or equal to 500 decimal places. Seriously. Ln(), et al., showed
+      an improvement in excess of 100%.
+
 4.04 Wed Jan 02 12:09:44 2002
     - Added Ln(), which calculates the natural log of a number
       to a given number of decimal places.
@@ -20,8 +29,7 @@ Revision history for Perl extension Math::NumberCruncher.
       at http://www.geocities.com/zabrodskyvlada/aat/.
 
 4.03 Wed Dec 19 15:44:11 2001
-    - Fixed the Variance() test in test.pl to allow for 
-      slight error tolerance.
+    - Fixed the Variance() test to allow for slight error tolerance.
     - Added Root(), which calculates the N-th root of a given number.
 
 4.02 Mon Dec 17 11:49:18 2001
@@ -54,16 +62,16 @@ Revision history for Perl extension Math::NumberCruncher.
         hav()
 
 3.0  Mon Jul 02 10:41:09 2001
-        - Fixed typo in Range()
-        - Added data verification prior to processing to
-          all routines that got grumpy when insufficient/improper
-          data was passed. (Thanks again to Ronald Blaschke, M.S.)
-        - Added DimensionlessSpeed_2()
-        - Added copyright info
+    - Fixed typo in Range()
+    - Added data verification prior to processing to all routines that 
+      got grumpy when insufficient/improper data was passed. (Thanks 
+      again to Ronald Blaschke, M.S.)
+    - Added DimensionlessSpeed_2()
+    - Added copyright info
 
 2.2  Wed Jun 27 14:54:05 2001
-    - Made minor change to Mean() and Range() to return undef 
-        on error. (Thanks to Ronald Blaschke, M.S.)
+    - Made minor change to Mean() and Range() to return undef on error. 
+      (Thanks to Ronald Blaschke, M.S.)
     - Added the following:
         RuleOf72()
         CylinderVolume()
@@ -82,7 +90,7 @@ Revision history for Perl extension Math::NumberCruncher.
         RelativeStride_2()
         DimensionlessSpeed()
         ActualSpeed()
-        - Added value of e out to 200 places.
+    - Added value of e out to 200 places.
 
 2.0  Mon Feb 12 11:50:58 2001
     - Added many new features:
@@ -100,16 +108,16 @@ Revision history for Perl extension Math::NumberCruncher.
 
 1.3  Sat Nov 25 17:18:44 2000
     - Corrected error in Difference()
-        (Thanks to Rusty Thomas, Ph.D., for finding the error.)
+      (Thanks to Rusty Thomas, Ph.D., for finding the error.)
 
 1.21 Tue Sep 19 08:57:51 2000
     - Corrected typo in AllOf()
-        (Thanks to Wim Verhaegen for finding the error.)
+      (Thanks to Wim Verhaegen for finding the error.)
 
 1.2  Mon Sep 18 13:24:43 2000
     - Fixed minor error in Range()
-    - Added Predict(), for predicting value of Y, given slope, y-intercept, and proposed
-        x value.
+    - Added Predict(), for predicting value of Y, given slope, y-intercept, 
+      and proposed x value.
 
 1.1  Wed Aug 30 14:41:52 2000
     - First public version

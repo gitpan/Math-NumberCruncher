@@ -1,4 +1,4 @@
-Math/NumberCruncher version 4.03
+Math/NumberCruncher version 4.05
 ================================
 
 Math::NumberCruncher is a rapidly growing collection of various common
@@ -17,16 +17,15 @@ To install this module type the following:
 
 DEPENDENCIES
 
-Math::NumberCruncher requires that Math::BigInt v1.47 (or
-greater...v1.47 is the current version as of this writing) installed on
-your system. I've installed v1.47 on numerous systems of varying OS's
-without any problem. This includes, but is not limited to, Win98, WinME,
-Win2000, and WinXP.
+Math::NumberCruncher requires that Math::BigInt v1.47 (or greater)
+installed on your system. I've installed v1.47 on numerous systems of
+varying OS's without any problem. This includes, but is not limited to,
+Win98, WinME, Win2000, and WinXP.
 
 COPYRIGHT AND LICENCE
 
-This module is free software and may be modified and/or 
-redistributed under the same terms as Perl itself.
+This module is free software and may be modified and/or redistributed
+under the same terms as Perl itself.
 
-Copyright (C) 2001, Kurt Kincaid <sifukurt@yahoo.com>
+Copyright (C) 2002, Kurt Kincaid <sifukurt@yahoo.com>
 

@@ -10,7 +10,8 @@ END {
 }
 
 use Math::NumberCruncher;
-$tests = 90;
+use Math::BigInt;
+$tests = 92;
 print ("Testing Math::NumberCruncher v$Math::NumberCruncher::VERSION\n\n");
 $loaded = 1;
 $count  = 1;
@@ -22,9 +23,6 @@ sub Testing {
     print "\r$mess" . ( " " x ( 75 - length $mess ) );
     $count++;
 }
-
-use Math::BigInt;
-use Math::NumberCruncher;
 
 @array1 = ( 1 .. 300 );
 @array2 = ( 50 .. 350 );
@@ -251,8 +249,8 @@ Testing();
 $error = Math::BigFloat->new( 0.000000001 );
 @a = ( 5, 5, 7, 8, 8, 8, 8, 8, 9, 10 );
 $variance = $ref->Variance( \@a );
-$diff = Math::BigFloat->new();
-$diff = $variance - 2.2400000000000099999999999999999999;
+$diff = Math::BigFloat->new( $variance - 2.2400000000000099999999999999999999 );
+#$diff = $variance - 2.2400000000000099999999999999999999;
 $diff->babs();
 if ( $diff->bcmp( $error ) > 0 ) {
     $Failed{31} = "Variance()";
@@ -521,19 +519,19 @@ if ( $ref->acos( 0.15 ) !~ /^1.42022805401821/ ) {
 Testing();
 
 # atan()
-if ( $ref->atan( 0.15 ) !~ /^0.148889947609498/ ) {
+if ( $ref->atan( 0.15 ) !~ /^0.1488899476094966192313/ ) {
     $Failed{73} = "atan()";
 }
 Testing();
 
 # acot()
-if ( $ref->acot( 0.15 ) !~ /^1.4219063791854/ ) {
+if ( $ref->acot( 0.15 ) !~ /^1.421906379185399619231/ ) {
     $Failed{74} = "acot()";
 }
 Testing();
 
 # asec()
-if ( $ref->asec( 0.15 ) !~ /^0.779709039377394/ ) {
+if ( $ref->asec( 0.15 ) !~ /^0.779709039377393619/ ) {
     $Failed{75} = "asec()";
 }
 Testing();
@@ -545,19 +543,22 @@ if ( $ref->sec( 0.15 ) !~ /^1.01135644267366/ ) {
 Testing();
 
 # csc()
-if ( $ref->csc( 0.15 ) !~ /^6.69173244771823/ ) {
+my $csc = $ref->csc( 0.15 );
+if ( $csc !~ /^6.69173244771824506/ ) {
     $Failed{77} = "csc()";
 }
 Testing();
 
 # exsec()
-if ( $ref->exsec( 0.15 ) !~ /^0.0113564426736641/ ) {
+my $exsec = $ref->exsec( 0.15 );
+if ( $exsec !~ /^0.01135644267366438/ ) {
     $Failed{78} = "exsec()";
 }
 Testing();
 
 # tan()
-if ( $ref->tan( 30 ) !~ /^-6.40533119664628/ ) {
+my $tan = $ref->tan( 30 );
+if ( $tan !~ /^-6.405331196646279252/ ) {
     $Failed{79} = "tan()";
 }
 Testing();
@@ -605,13 +606,15 @@ if ( $ref->Root2( 10000, 20, 25 ) !~ /^1.58489319246111/ ) {
 Testing();
 
 # Ln()
-if ( $ref->Ln( 100 ) ne "4.60517018598809136794" ) {
+my $ln = $ref->Ln( 100 );
+if ( $ln ne "4.60517018598809136804" ) {
     $Failed{87} = "Ln()";
 }
 Testing();
 
 # Exp()
-if ( $ref->Exp( 1.11111, 25 ) ne "3.0377284022618271502307375" ) {
+my $exp = $ref->Exp( 1.11111, 25 );
+if ( $exp ne "3.0377284022618271502307371" ) {
     $Failed{88} = "Exp()";
 }
 Testing();
@@ -626,6 +629,21 @@ Testing();
 # PythagTriplesSeq()
 if ( $ref->PythagTriplesSeq( 25, 53 ) !~ /^58.6003412959344461188613527037/ ) {
     $Failed{90} = "PythagTriplesSeq()";
+}
+Testing();
+
+# acsc ()
+my $acsc = $ref->acsc( 0.15 );
+if ( $acsc !~ /^0.791087287417503/ ) {
+    $Failed{91};
+}
+Testing();
+
+# SIS()
+@nums = $ref->SIS( 1, 5 );
+unless ( $nums[0] == 1 && $nums[1] == 3 && $nums[2] == 5 && $nums[3] == 10
+         && $nums[4] == 20 ) {
+    $Failed{92} = "SIS()";
 }
 Testing();
 
