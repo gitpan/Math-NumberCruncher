@@ -1,6 +1,9 @@
 Revision history for Perl extension Math::NumberCruncher.
 
-0.01  Wed Aug 30 14:41:52 2000
-	- original version; created by h2xs 1.20 with options
-		-XA -n Math::NumberCruncher
+1.2  Mon Sep 18 13:24:43 2000
+	- Fixed minor error in Range()
+	- Added Predict(), for predicting values of Y, given slope, y-intercept, and proposed
+		x value.
 
+1.1  Wed Aug 30 14:41:52 2000
+	- First public version

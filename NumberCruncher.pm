@@ -4,12 +4,13 @@ require Exporter;
 
 @ISA = qw(Exporter AutoLoader);
 
-$VERSION = '1.1';
+$VERSION = '1.2';
 use strict;
 
 sub Range {
 	my $arrayref = shift;
 	my ( $zzz, $hi, $lo );
+	$hi = $lo = $$arrayref[0];
 	foreach $zzz ( @$arrayref ) {
 		if ( $zzz > $hi ) {
 			$hi = $zzz;
@@ -394,6 +395,11 @@ sub FMA {
 	return $result;
 }
 
+sub Predict {
+	my ( $slope, $y_intercept, $proposed ) = @_;
+	return $slope * $proposed + $y_intercept;
+}
+
 1;
 __END__
 
@@ -482,6 +488,8 @@ $force = Math::NumberCruncher::FMA( "m12", "a73.5" );
 $mass = Math::NumberCruncher::FMA( "a43", "f1324" );
 
 $acceleration = Math::NumberCruncher::FMA( "f53512", "m356" );
+
+$predicted_value = Math::NubmerCruncher::Predict( $slope, $y_intercept, $proposed_x );
 
 =head1 DESCRIPTION
 
@@ -669,6 +677,11 @@ Implementation of the stadard force = mass * acceleration formula.  Given two of
 variables (i.e., mass and force, mass and acceleration, or acceleration and force), the
 function returns the third.  When passing the values, mass must be preceeded by a "m," force
 must be preceeded by a "f," and acceleration must be preceeded by an "a."  Case is irrelevant.
+
+=item $predicted = B<Math::NumberCruncher::Predict>( $slope, $y_intercept, $proposed_x );
+
+Useful for predicting values based on data trends, as calculated by BestFit(). Given the slope
+and y-intercept, and a proposed value of x, returns corresponding y.
 
 =head1 AUTHOR
 
